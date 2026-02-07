@@ -133,14 +133,6 @@ struct DashboardView: View {
             .navigationTitle("Home")
     }
 }
-
-struct MapView: View {
-    var body: some View {
-        Text("Map View - Coming Soon")
-            .navigationTitle("Map")
-    }
-}
-
 struct PlacesListView: View {
     var body: some View {
         Text("Places List - Coming Soon")
