@@ -7,13 +7,6 @@
 
 import Foundation
 
-enum Category {
-//    case restaurant, coffee, bars, brunch, dessert, gas, hotels, atms, pharmacies, hospitalsNclinics, parking, barber, gym, groceries, beauty, apparel, electronics, cinema, arcade, libraries, museums, parks, convini, sports
-//    OR
-    case food, drink, things2do, shopping, services
-    
-}
-
 struct Place: Identifiable{
     var id: String
     var name: String
@@ -22,12 +15,10 @@ struct Place: Identifiable{
     let latitude: Double
     let longitude: Double
     var rating: Double
-    var distance: Double
     var phone: String
-//    var hours: String
     var photoUrl: [String]
     
-    init(id: String, name: String, category: Category, address: String, latitude: Double, longitude: Double, rating: Double, distance: Double, phone: String, photoUrl: [String]) {
+    init(id: String, name: String, category: Category, address: String, latitude: Double, longitude: Double, rating: Double, phone: String, photoUrl: [String]) {
             self.id = id
             self.name = name
             self.category = category
@@ -35,7 +26,6 @@ struct Place: Identifiable{
             self.latitude = latitude
             self.longitude = longitude
             self.rating = rating
-            self.distance = distance
             self.phone = phone
             self.photoUrl = photoUrl
         }
