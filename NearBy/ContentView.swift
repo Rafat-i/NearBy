@@ -21,12 +21,33 @@ struct ContentView: View {
         
         Group {
             if !isLoaded {
-                ProgressView()
-                    .onAppear {
-                        auth.fetchCurrentUser { _ in
+                
+                ZStack {
+                    Color(.systemBackground)
+                        .ignoresSafeArea()
+                    
+                    VStack(spacing: 20) {
+                        Image(systemName: "map.fill")
+                            .font(.system(size: 60))
+                            .foregroundColor(.blue)
+                        
+                        Text("NearBy")
+                            .font(.largeTitle)
+                            .fontWeight(.bold)
+                        
+                        ProgressView()
+                            .scaleEffect(1.2)
+                    }
+                }
+                .task {
+                    
+                    auth.fetchCurrentUser { _ in
+                        
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                             isLoaded = true
                         }
                     }
+                }
             }
             else if auth.currentUser == nil {
                 AuthGate()

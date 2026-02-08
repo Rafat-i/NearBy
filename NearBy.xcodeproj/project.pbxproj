@@ -18,9 +18,22 @@
 		34B1FE962F2EEFD400B3284C /* NearBy.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = NearBy.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		3409F1952F38302800C486DD /* Exceptions for "NearBy" folder in "NearBy" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 34B1FE952F2EEFD400B3284C /* NearBy */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		34B1FE982F2EEFD400B3284C /* NearBy */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				3409F1952F38302800C486DD /* Exceptions for "NearBy" folder in "NearBy" target */,
+			);
 			path = NearBy;
 			sourceTree = "<group>";
 		};
@@ -280,6 +293,9 @@
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = NearBy/Info.plist;
+				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "NearBy uses your location to show nearby places on the map.";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "NearBy needs your location to show nearby places and help you navigate.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -311,6 +327,9 @@
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = NearBy/Info.plist;
+				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "NearBy uses your location to show nearby places on the map.";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "NearBy needs your location to show nearby places and help you navigate.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;

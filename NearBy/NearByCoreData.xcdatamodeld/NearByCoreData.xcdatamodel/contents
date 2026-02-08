@@ -1,28 +1,53 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="24512" systemVersion="25C56" minimumToolsVersion="Automatic" sourceLanguage="Swift" usedWithSwiftData="YES" userDefinedModelVersionIdentifier="">
-    <entity name="Category" representedClassName="Category" syncable="YES">
-        <attribute name="hexColor" optional="YES" attributeType="String"/>
-        <attribute name="icon" optional="YES" attributeType="String"/>
-        <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="24299" systemVersion="25A362" minimumToolsVersion="Automatic" sourceLanguage="Swift" usedWithSwiftData="YES" userDefinedModelVersionIdentifier="">
+    <entity name="CategoryEntity" representedClassName="CategoryEntity" syncable="YES" codeGenerationType="class">
+        <attribute name="colorHex" optional="YES" attributeType="String"/>
+        <attribute name="iconName" optional="YES" attributeType="String"/>
+        <attribute name="id" optional="YES" attributeType="String"/>
         <attribute name="name" optional="YES" attributeType="String"/>
-        <attribute name="type" optional="YES" attributeType="String"/>
+        <relationship name="places" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="PlaceEntity" inverseName="category" inverseEntity="PlaceEntity"/>
     </entity>
-    <entity name="Place" representedClassName="Place" syncable="YES">
+    <entity name="NoteEntity" representedClassName="NoteEntity" syncable="YES" codeGenerationType="class">
+        <attribute name="createdDate" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="text" optional="YES" attributeType="String"/>
+        <relationship name="place" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="PlaceEntity" inverseName="notes" inverseEntity="PlaceEntity"/>
+        <relationship name="user" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="UserEntity" inverseName="notes" inverseEntity="UserEntity"/>
+    </entity>
+    <entity name="PlaceEntity" representedClassName="PlaceEntity" syncable="YES" codeGenerationType="class">
         <attribute name="address" optional="YES" attributeType="String"/>
         <attribute name="id" optional="YES" attributeType="String"/>
+        <attribute name="isFavorite" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="lastViewed" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="latitude" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
         <attribute name="longitude" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
         <attribute name="name" optional="YES" attributeType="String"/>
         <attribute name="phone" optional="YES" attributeType="String"/>
-        <attribute name="phoneUrl" optional="YES" attributeType="Transformable"/>
+        <attribute name="photoUrl" optional="YES" attributeType="String"/>
+        <attribute name="placeCategory" optional="YES" attributeType="String"/>
+        <attribute name="placeDescription" optional="YES" attributeType="String"/>
         <attribute name="rating" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
-        <relationship name="category" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Category"/>
+        <attribute name="userNotes" optional="YES" attributeType="String"/>
+        <attribute name="website" optional="YES" attributeType="String"/>
+        <relationship name="category" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="CategoryEntity" inverseName="places" inverseEntity="CategoryEntity"/>
+        <relationship name="favoritedBy" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="UserEntity" inverseName="favorites" inverseEntity="UserEntity"/>
+        <relationship name="notes" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="NoteEntity" inverseName="place" inverseEntity="NoteEntity"/>
     </entity>
-    <entity name="User" representedClassName="User" syncable="YES">
+    <entity name="UserEntity" representedClassName="UserEntity" syncable="YES" codeGenerationType="class">
         <attribute name="email" optional="YES" attributeType="String"/>
-        <attribute name="favouriteCount" optional="YES" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
-        <attribute name="id" optional="YES" attributeType="String"/>
+        <attribute name="lastSynced" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="userId" optional="YES" attributeType="String"/>
         <attribute name="username" optional="YES" attributeType="String"/>
-        <attribute name="visitedPlacesCount" optional="YES" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
+        <relationship name="favorites" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="PlaceEntity" inverseName="favoritedBy" inverseEntity="PlaceEntity"/>
+        <relationship name="notes" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="NoteEntity" inverseName="user" inverseEntity="NoteEntity"/>
+        <relationship name="preferences" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="UserPreferences" inverseName="user" inverseEntity="UserPreferences"/>
+    </entity>
+    <entity name="UserPreferences" representedClassName="UserPreferences" syncable="YES" codeGenerationType="class">
+        <attribute name="defaultRadius" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="id" optional="YES" attributeType="String"/>
+        <attribute name="mapStyle" optional="YES" attributeType="String"/>
+        <attribute name="preferredCategories" optional="YES" attributeType="Transformable"/>
+        <attribute name="units" optional="YES" attributeType="String"/>
+        <relationship name="user" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="UserEntity" inverseName="preferences" inverseEntity="UserEntity"/>
     </entity>
 </model>
