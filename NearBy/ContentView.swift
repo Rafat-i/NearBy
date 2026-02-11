@@ -27,9 +27,10 @@ struct ContentView: View {
                         .ignoresSafeArea()
                     
                     VStack(spacing: 20) {
-                        Image(systemName: "map.fill")
-                            .font(.system(size: 60))
-                            .foregroundColor(.blue)
+                        Image("NearByIcon")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 80, height: 80)
                         
                         Text("NearBy")
                             .font(.largeTitle)

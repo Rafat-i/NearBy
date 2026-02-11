@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		3499B3092F3BEAC20048BAB1 /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = 3499B3082F3BEABC0048BAB1 /* README.md */; };
 		349D7D722F37E48000D25E6D /* .gitignore in Resources */ = {isa = PBXBuildFile; fileRef = 349D7D712F37E47900D25E6D /* .gitignore */; };
 		34E960482F32A9DF00B24B6F /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 34E960472F32A9DF00B24B6F /* FirebaseAuth */; };
 		34E9604A2F32A9EA00B24B6F /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = 34E960492F32A9EA00B24B6F /* FirebaseFirestore */; };
@@ -14,6 +15,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		3499B3082F3BEABC0048BAB1 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		349D7D712F37E47900D25E6D /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
 		34B1FE962F2EEFD400B3284C /* NearBy.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = NearBy.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -56,6 +58,7 @@
 		34B1FE8D2F2EEFD400B3284C = {
 			isa = PBXGroup;
 			children = (
+				3499B3082F3BEABC0048BAB1 /* README.md */,
 				34B1FE982F2EEFD400B3284C /* NearBy */,
 				34E960462F32A9DF00B24B6F /* Frameworks */,
 				34B1FE972F2EEFD400B3284C /* Products */,
@@ -149,6 +152,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				349D7D722F37E48000D25E6D /* .gitignore in Resources */,
+				3499B3092F3BEAC20048BAB1 /* README.md in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
