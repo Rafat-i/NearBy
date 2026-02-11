@@ -5,12 +5,6 @@
 //  Created by Ace of Heart on 2026-02-06.
 //
 
-//
-//  MapView.swift
-//  NearBy
-//
-//  Created by Ace of Heart on 2026-02-06.
-//
 
 import SwiftUI
 import MapKit

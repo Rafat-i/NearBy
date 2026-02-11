@@ -5,12 +5,6 @@
 //  Created by Rafat on 2026-02-07.
 //
 
-//
-//  LocationManager.swift
-//  NearBy
-//
-//  Created by Rafat on 2026-02-07.
-//
 
 import Foundation
 import CoreLocation
