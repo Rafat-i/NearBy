@@ -31,6 +31,11 @@
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
+		347E1C812F3C152400D1F0E8 /* Screenshots */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Screenshots;
+			sourceTree = "<group>";
+		};
 		34B1FE982F2EEFD400B3284C /* NearBy */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
@@ -63,6 +68,7 @@
 				34E960462F32A9DF00B24B6F /* Frameworks */,
 				34B1FE972F2EEFD400B3284C /* Products */,
 				349D7D712F37E47900D25E6D /* .gitignore */,
+				347E1C812F3C152400D1F0E8 /* Screenshots */,
 			);
 			sourceTree = "<group>";
 		};
@@ -97,6 +103,7 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
+				347E1C812F3C152400D1F0E8 /* Screenshots */,
 				34B1FE982F2EEFD400B3284C /* NearBy */,
 			);
 			name = NearBy;
