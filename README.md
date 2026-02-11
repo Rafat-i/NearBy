@@ -301,6 +301,7 @@ None at this time.
 - Place reviews and ratings
 - Advanced filtering (open now, price range)
 - Route planning for multiple destinations
+- Favorites View
 
 ## License
 
