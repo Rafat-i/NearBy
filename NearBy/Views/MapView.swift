@@ -17,9 +17,12 @@ import MapKit
 import CoreLocation
 
 struct MapView: View {
+    @Namespace private var mapScope
     @State private var cameraPosition: MapCameraPosition = .automatic
     @State private var places: [Place] = []
     @State private var isLoading = true
+    @State private var isAnimating = false
+    @State private var shouldNavigate = false
     @StateObject private var locationManager = LocationManager()
     
     var body: some View {
@@ -46,29 +49,35 @@ struct MapView: View {
             }
             
             VStack {
-                SearchBarView()
-                
+                Spacer()
                 HStack {
                     Spacer()
                     NavigationLink(destination: ProfileView()) {
                         Image(systemName: "slider.vertical.3")
-                            .font(.system(size: 30, weight: .bold))
+                            .font(.system(size: 20, weight: .bold))
                             .foregroundColor(.white)
-                            .padding()
-                            .background(Circle().fill(.blue))
+                            .padding(12)
+                            .background(Circle().fill(.blue).shadow(radius:5,y: 5))
+                            
                     }
                 }
                 .padding(.horizontal)
+                SearchBarView()
+                    .onTapGesture {
+                       
+                                        
+                    }
                 
-                Spacer()
-            }
+            }.padding(.bottom, 20)
+            
+
             
             if isLoading {
                 ProgressView()
                     .scaleEffect(1.5)
             }
         }
-        .navigationTitle("Map")
+//        .navigationTitle("Map")
         .onAppear {
             locationManager.requestPermission()
             loadPlaces()

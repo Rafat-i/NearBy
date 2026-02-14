@@ -18,9 +18,9 @@ struct SearchBarView: View {
                     .font(.title3)
                 TextField("Search", text:$textInput)
             }.padding()
-            .background(RoundedRectangle(cornerRadius:35).fill(.opacity(0.1)
-              ))
-        }.padding()
+                .background(RoundedRectangle(cornerRadius:35).fill(.white))
+                .shadow(radius: 5, y: 5)
+        }.padding(.horizontal)
     }
 }
 
