@@ -6,6 +6,7 @@
 //
 
 
+
 import SwiftUI
 import MapKit
 import CoreLocation
@@ -25,6 +26,7 @@ struct MapView: View {
     @State private var zoomLevel: Double = 2000
     @State private var didAutoCenter: Bool = false
     @State private var currentCenter: CLLocationCoordinate2D?
+    @State private var selectedPlace: Place?
     
     var body: some View {
         ZStack {
@@ -64,12 +66,20 @@ struct MapView: View {
                                 .background(categoryColor(for: place.category).gradient, in: .circle)
                                 .shadow(radius: 3)
                         }
+                        .onTapGesture {
+                            selectedPlace = place
+                        }
                     }
                 }
             }
             .mapStyle(.standard)
             .onMapCameraChange { context in
                 currentCenter = context.region.center
+            }
+            .sheet(item: $selectedPlace) { place in
+                NavigationView {
+                    PlaceDetailView(place: place)
+                }
             }
             
             VStack {

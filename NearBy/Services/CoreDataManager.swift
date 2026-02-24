@@ -23,7 +23,7 @@ final class CoreDataManager {
     }
     
     private init() {
-        persistentContainer = NSPersistentContainer(name: "NearBy")
+        persistentContainer = NSPersistentContainer(name: "NearByCoreData")
         
         let description = persistentContainer.persistentStoreDescriptions.first
         description?.shouldInferMappingModelAutomatically = true
