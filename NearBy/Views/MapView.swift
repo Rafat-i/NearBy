@@ -14,11 +14,14 @@ struct MapView: View {
     @State private var cameraPosition: MapCameraPosition = .automatic
     @State private var places: [Place] = []
     @State private var isLoading = true
+    @State private var runningSearch = false
     @StateObject private var locationManager = LocationManager()
     
     @State private var searchText: String = ""
     @State private var destination: CLLocationCoordinate2D?
     @State private var route: MKRoute?
+    @State private var distance = 0.00
+    @State private var timeDuration: Double = 0
     @State private var isSearching: Bool = false
     @State private var errorMessage: String?
     
@@ -51,6 +54,8 @@ struct MapView: View {
                 if let route {
                     MapPolyline(route.polyline)
                         .stroke(.blue, lineWidth: 5)
+                    
+                    
                 }
                 
                 ForEach(places) { place in
@@ -130,6 +135,20 @@ struct MapView: View {
                 }
                 .padding(.horizontal)
                 .padding(.top, 60)
+                HStack{
+                    Spacer()
+                    NavigationLink(
+                        destination: CategoriesView()
+                    ) {
+                        Image(systemName: "slider.vertical.3")
+                            .font(.title2)
+                            .foregroundStyle(.blue)
+                            .padding()
+                            .background(.ultraThinMaterial)
+                            .clipShape(Circle())
+                            .shadow(radius: 6, x:0, y:0)
+                    }
+                }.padding()
                 
                 Spacer()
                 
@@ -139,12 +158,24 @@ struct MapView: View {
                 }
                 .padding(.horizontal)
                 .padding(.bottom, 100)
+                
+            }
+            
+            if isSearching{
+                VStack{
+                    Spacer()
+                    HStack{
+                        FloatingCard(duration: timeDuration, distance: distance)
+                        Spacer()
+                    }
+                }.padding()
             }
             
             if isLoading {
                 ProgressView()
                     .scaleEffect(1.5)
             }
+            
         }
         .navigationBarHidden(true)
         .safeAreaInset(edge: .bottom) {
@@ -330,6 +361,9 @@ struct MapView: View {
                 let newRoute = try await calculateRoute(from: userLocation, to: dest)
                 route = newRoute
                 
+                distance = route?.distance ?? 0.00
+                timeDuration = route?.expectedTravelTime ?? 0.0
+                
                 let rect = newRoute.polyline.boundingMapRect
                 let region = MKCoordinateRegion(rect)
                 cameraPosition = .region(region)
@@ -425,6 +459,7 @@ struct MapView: View {
                     return
                 }
                 
+                
                 continuation.resume(returning: route)
             }
         }
@@ -460,6 +495,31 @@ struct MapView: View {
                     MapCamera(centerCoordinate: userLocation, distance: zoomLevel)
                 )
             }
+        }
+    }
+    
+    struct FloatingCard: View {
+        let duration: Double
+        let distance: Double
+    
+        var body: some View {
+            VStack(alignment:.leading, spacing: 12) {
+                 
+                Text("Distance:\n\(String(format: "%.2f",distance/1000))km")
+                    .font(.default)
+                    .foregroundColor(.white)
+                Text("Duration:\n\(TimeFormat(time: duration))")
+                    .font(.default)
+                    .foregroundColor(.white)
+            }
+            .frame(maxWidth: 90)
+            .frame(height: 120)
+            .background(.blue)
+            .cornerRadius(12)
+            .overlay(
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(Color.white.opacity(0.2), lineWidth: 1)
+            )
         }
     }
     

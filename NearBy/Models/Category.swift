@@ -25,12 +25,12 @@ struct Category: Identifiable, Codable {
 
 extension Category {
     static let defaultCategories: [Category] = [
-        Category(id: "restaurants", name: "Restaurants", iconName: "fork.knife", colorHex: "#FF6B6B"),
-        Category(id: "cafes", name: "Cafés", iconName: "cup.and.saucer", colorHex: "#8B4513"),
-        Category(id: "parks", name: "Parks", iconName: "tree", colorHex: "#4CAF50"),
-        Category(id: "shopping", name: "Shopping", iconName: "cart", colorHex: "#9C27B0"),
-        Category(id: "libraries", name: "Libraries", iconName: "book", colorHex: "#2196F3"),
-        Category(id: "education", name: "Education", iconName: "graduationcap", colorHex: "#FF9800"),
-        Category(id: "entertainment", name: "Entertainment", iconName: "theatermasks", colorHex: "#2196F3")
+        Category(id: "restaurants", name: "Restaurants", iconName: "fork.knife", colorHex: "RestaurantColor"),
+        Category(id: "cafes", name: "Cafés", iconName: "cup.and.saucer", colorHex: "CafeColor"),
+        Category(id: "parks", name: "Parks", iconName: "tree", colorHex: "ParkColor"),
+        Category(id: "shopping", name: "Shopping", iconName: "cart", colorHex: "ShoppingColor"),
+        Category(id: "libraries", name: "Libraries", iconName: "book", colorHex: "LibraryColor"),
+        Category(id: "education", name: "Education", iconName: "graduationcap", colorHex: "EducationColor"),
+        Category(id: "entertainment", name: "Entertainment", iconName: "theatermasks", colorHex: "EntertainmentColor")
     ]
 }
