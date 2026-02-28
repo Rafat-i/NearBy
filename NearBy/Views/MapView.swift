@@ -12,9 +12,9 @@ import MapKit
 import CoreLocation
 
 struct MapView: View {
+    @StateObject private var filter = MapFilter()
     @State private var cameraPosition: MapCameraPosition = .automatic
-    @State private var places: [Place] = []
-    @State private var isLoading = true
+    
     @State private var runningSearch = false
     @StateObject private var locationManager = LocationManager()
     
@@ -22,7 +22,7 @@ struct MapView: View {
     @State private var destination: CLLocationCoordinate2D?
     @State private var route: MKRoute?
     @State private var distance = 0.00
-    @State private var timeDuration: Double = 0
+    @State private var timeDuration: Double = 0.00
     @State private var isSearching: Bool = false
     @State private var errorMessage: String?
     
@@ -60,7 +60,7 @@ struct MapView: View {
                     
                 }
                 
-                ForEach(places) { place in
+                ForEach(filter.filteredPlaces) { place in
                     Annotation(place.name, coordinate: place.coordinate) {
                         VStack {
                             Image(systemName: categoryIcon(for: place.category))
@@ -148,7 +148,7 @@ struct MapView: View {
                 HStack{
                     Spacer()
                     NavigationLink(
-                        destination: CategoriesView()
+                        destination: CategoriesView(filter: filter)
                     ) {
                         Image(systemName: "slider.vertical.3")
                             .font(.title2)
@@ -181,7 +181,7 @@ struct MapView: View {
                 }.padding()
             }
             
-            if isLoading {
+            if filter.isLoading {
                 ProgressView()
                     .scaleEffect(1.5)
             }
@@ -194,7 +194,7 @@ struct MapView: View {
             }
         }
         .onAppear {
-            loadPlaces()
+            filter.loadPlaces()
         }
         .onReceive(locationManager.$userLocation) { newLocation in
             guard !didAutoCenter, route == nil, let loc = newLocation else { return }
@@ -329,22 +329,6 @@ struct MapView: View {
             }
             .padding()
             .background(.ultraThinMaterial)
-        }
-    }
-    
-    
-    private func loadPlaces() {
-        isLoading = true
-        FirebaseService.shared.fetchNearbyPlaces { result in
-            isLoading = false
-            switch result {
-            case .success(let fetchedPlaces):
-                self.places = fetchedPlaces
-                print("Loaded \(fetchedPlaces.count) places from Firebase")
-            case .failure(let error):
-                print("Error loading places: \(error)")
-                errorMessage = "Failed to load places: \(error.localizedDescription)"
-            }
         }
     }
     
