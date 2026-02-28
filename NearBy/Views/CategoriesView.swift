@@ -23,24 +23,23 @@
             }.padding(.horizontal)
             
             ScrollView{
-                LazyVGrid(columns: [GridItem(.adaptive(minimum: 150))], spacing: 20){
                     Button(action:{
                         filter.selectedCategory = nil
                         dismiss()
                     }) {
                         Text("All")
-                            .font(.headline)
-                            .foregroundColor(.white.opacity(0.8))
+                            .font(.system(size: 30))
+                            .fontWeight(.bold)
+                            .foregroundColor(.gray)
                     }
                     .frame(maxWidth: .infinity)
                     .frame(height: 120)
-                    .background(.gray)
+                    .background(.gray.opacity(0.12))
                     .cornerRadius(12)
                     .overlay(
                         RoundedRectangle(cornerRadius: 12)
-                            .stroke(Color.white.opacity(0.2), lineWidth: 1)
-                    )
-                }
+                            .stroke(.gray.opacity(0.3), lineWidth: 1)
+                    ).padding(.bottom)
                     ForEach(categories) { category in
                         VStack(alignment: .leading){
                             Button(action: {
@@ -49,9 +48,9 @@
                             }) {
                                 CategoryCard(category:category)
                             }
-                        }
+                        }.padding(.bottom)
                     }
-                }.padding()
+            }.padding()
             }
         }
     
@@ -63,19 +62,24 @@
             VStack(spacing: 12) {
                 Image(systemName: category.iconName ?? "questionmark")
                     .font(.system(size: 30))
-                    .foregroundStyle(.white.opacity(1))
+                    .foregroundStyle(Color(category.colorHex!))
                 
                 Text(category.name)
                     .font(.headline)
-                    .foregroundColor(.white.opacity(0.8))
+                    .foregroundColor(Color(category.colorHex!))
             }
             .frame(maxWidth: .infinity)
             .frame(height: 120)
-            .background(Color(category.colorHex!))
+            .background(Color(category.colorHex!).opacity(0.12))
             .cornerRadius(12)
             .overlay(
                 RoundedRectangle(cornerRadius: 12)
-                    .stroke(Color.white.opacity(0.2), lineWidth: 1)
+                    .stroke(Color(category.colorHex!).opacity(0.3), lineWidth: 1)
             )
         }
     }
+
+
+#Preview {
+    CategoriesView(filter: MapFilter())
+}
