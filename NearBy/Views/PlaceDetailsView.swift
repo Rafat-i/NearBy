@@ -18,6 +18,7 @@ class PlaceDetailViewModel: ObservableObject {
     @Published var noteText: String = ""
     @Published var showNoteEditor: Bool = false
     @Published var noteSavedMessage: String?
+    @Published var favouriteSavedMessage: String?
     @Published var errorMessage: String?
     @Published var cameraPosition: MapCameraPosition = .automatic
 
@@ -75,6 +76,13 @@ class PlaceDetailViewModel: ObservableObject {
         do {
             try coreData.saveContext()
             isFavorite = newValue
+            if newValue {
+                favouriteSavedMessage = "Added to favourites"
+                Task {
+                    try? await Task.sleep(for: .seconds(2))
+                    favouriteSavedMessage = nil
+                }
+            }
             let delta   = newValue ? +1 : -1
             let current = AuthService.shared.currentUser?.favoriteCount ?? 0
             AuthService.shared.updateUserStats(favoriteCount: max(0, current + delta)) { _ in }
@@ -118,28 +126,44 @@ struct PlaceDetailView: View {
     }
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 0) {
-                mapSnapshotSection
-                headerCard
-                    .padding(.horizontal)
-                    .padding(.top, -28)
-                quickActionsRow
-                    .padding(.horizontal)
-                    .padding(.top, 16)
-                infoSection
-                    .padding(.horizontal)
-                    .padding(.top, 16)
-                notesSection
-                    .padding(.horizontal)
-                    .padding(.top, 16)
-                if let err = vm.errorMessage {
-                    errorBanner(err)
+        ZStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 0) {
+                    mapSnapshotSection
+                    headerCard
                         .padding(.horizontal)
-                        .padding(.top, 12)
+                        .padding(.top, -28)
+                    quickActionsRow
+                        .padding(.horizontal)
+                        .padding(.top, 16)
+                    infoSection
+                        .padding(.horizontal)
+                        .padding(.top, 16)
+                    notesSection
+                        .padding(.horizontal)
+                        .padding(.top, 16)
+                    if let err = vm.errorMessage {
+                        errorBanner(err)
+                            .padding(.horizontal)
+                            .padding(.top, 12)
+                    }
+                    Spacer(minLength: 40)
                 }
-                Spacer(minLength: 40)
             }
+            if let msg = vm.favouriteSavedMessage {
+                HStack(spacing: 8) {
+                    Image(systemName: "heart.fill").foregroundColor(.red)
+                    Text(msg).fontWeight(.medium)
+                }
+                .padding(.horizontal, 20)
+                .padding(.vertical, 12)
+                .background(.ultraThinMaterial, in: Capsule())
+                .shadow(radius: 8)
+                .padding(.bottom, 24)
+                .transition(.move(edge: .bottom).combined(with: .opacity))
+                .animation(.spring(response: 0.4, dampingFraction: 0.7), value: vm.favouriteSavedMessage)
+            }
+
         }
         .ignoresSafeArea(edges: .top)
         .navigationBarTitleDisplayMode(.inline)

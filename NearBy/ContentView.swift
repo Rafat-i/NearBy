@@ -74,7 +74,7 @@ struct ContentView: View {
                                 }
                             case .favorites:
                                 NavigationView {
-                                    FavoritesView()
+                                    FavouritesViews()
                                 }
                             case .profile:
                                 NavigationView {

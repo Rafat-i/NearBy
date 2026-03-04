@@ -37,4 +37,6 @@ struct Place: Identifiable, Codable {
         self.photoURL = photoURL
         self.website = website
     }
+    
+    
 }

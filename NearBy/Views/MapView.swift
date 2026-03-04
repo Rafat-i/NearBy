@@ -279,7 +279,7 @@ struct MapView: View {
 
                 HStack {
                     Spacer()
-                    NavigationLink(destination: CategoriesView()) {
+                    NavigationLink(destination: CategoriesView(filter: MapFilter())) {
                         Image(systemName: "slider.vertical.3")
                             .font(.title2)
                             .foregroundStyle(.blue)
