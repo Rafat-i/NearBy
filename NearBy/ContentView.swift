@@ -62,7 +62,7 @@ struct ContentView: View {
                             switch tab {
                             case .home:
                                 NavigationView {
-                                    DashboardView()
+                                    DashView()
                                 }
                             case .map:
                                 NavigationView {
