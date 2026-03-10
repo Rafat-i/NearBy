@@ -13,6 +13,7 @@ import Combine
 struct FavouritesViews: View {
     @State private var favourites: [PlaceEntity] = []
     private let coreData = CoreDataManager.shared
+    private let sync = PlaceSyncCoordinator.shared
     
     var body: some View {
         NavigationStack {
@@ -58,13 +59,22 @@ struct FavouritesViews: View {
     }
     
     private func load() {
-        let predicate = NSPredicate(format: "isFavorite == true")
+        guard let userId = AuthService.shared.currentUser?.id else {
+            favourites = []
+            return
+        }
+
+        let predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [
+            NSPredicate(format: "isFavorite == true"),
+            NSPredicate(format: "userId == %@", userId)
+        ])
+
         favourites = (try? coreData.fetch(PlaceEntity.self, predicate: predicate)) ?? []
     }
     
     private func remove(_ entity: PlaceEntity) {
         entity.isFavorite = false
-        try? coreData.saveContext()
+        try? sync.saveAndSyncMainContext()
         load()
     }
     

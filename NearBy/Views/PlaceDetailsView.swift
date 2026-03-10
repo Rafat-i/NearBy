@@ -24,6 +24,7 @@ class PlaceDetailViewModel: ObservableObject {
 
     let place: Place
     private let coreData = CoreDataManager.shared
+    private let sync = PlaceSyncCoordinator.shared
 
     init(place: Place) {
         self.place = place
@@ -32,18 +33,32 @@ class PlaceDetailViewModel: ObservableObject {
     }
 
     private func loadPlaceState() {
-        guard let placeID = place.id else { return }
-        let predicate = NSPredicate(format: "id == %@", placeID)
+        guard
+            let placeID = place.id,
+            let userId = AuthService.shared.currentUser?.id
+        else { return }
+
+        let predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [
+            NSPredicate(format: "id == %@", placeID),
+            NSPredicate(format: "userId == %@", userId)
+        ])
         guard let entity = try? coreData.fetchFirst(PlaceEntity.self, predicate: predicate) else { return }
         isFavorite = entity.isFavorite
         noteText   = entity.userNotes ?? ""
         entity.lastViewed = Date()
-        try? coreData.saveContext()
+        try? sync.saveAndSyncMainContext()
     }
 
     private func fetchOrCreatePlaceEntity() -> PlaceEntity? {
-        guard let placeID = place.id else { return nil }
-        let predicate = NSPredicate(format: "id == %@", placeID)
+        guard
+            let placeID = place.id,
+            let userId = AuthService.shared.currentUser?.id
+        else { return nil }
+
+        let predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [
+            NSPredicate(format: "id == %@", placeID),
+            NSPredicate(format: "userId == %@", userId)
+        ])
 
         if let existing = try? coreData.fetchFirst(PlaceEntity.self, predicate: predicate) {
             return existing
@@ -55,6 +70,7 @@ class PlaceDetailViewModel: ObservableObject {
         ) as? PlaceEntity else { return nil }
 
         entity.id            = placeID
+        entity.userId        = userId
         entity.name          = place.name
         entity.address       = place.address
         entity.placeCategory = place.category
@@ -74,7 +90,7 @@ class PlaceDetailViewModel: ObservableObject {
         let newValue      = !entity.isFavorite
         entity.isFavorite = newValue
         do {
-            try coreData.saveContext()
+            try sync.saveAndSyncMainContext()
             isFavorite = newValue
             if newValue {
                 favouriteSavedMessage = "Added to favourites"
@@ -108,7 +124,7 @@ class PlaceDetailViewModel: ObservableObject {
         }
 
         do {
-            try coreData.saveContext()
+            try sync.saveAndSyncMainContext()
             noteSavedMessage = "Note saved!"
             DispatchQueue.main.asyncAfter(deadline: .now() + 2) { self.noteSavedMessage = nil }
         } catch {

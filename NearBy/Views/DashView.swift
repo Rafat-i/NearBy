@@ -22,8 +22,16 @@ class DashboardViewModel: ObservableObject {
     
     func load() {
         userName = AuthService.shared.currentUser?.username ?? "Explorer"
-        
-        let allPlaces = (try? coreData.fetch(PlaceEntity.self)) ?? []
+
+        guard let userId = AuthService.shared.currentUser?.id else {
+            totalVisited = 0
+            favouriteCount = 0
+            recentPlaces = []
+            return
+        }
+
+        let predicate = NSPredicate(format: "userId == %@", userId)
+        let allPlaces = (try? coreData.fetch(PlaceEntity.self, predicate: predicate)) ?? []
         totalVisited = allPlaces.count
         favouriteCount = allPlaces.filter { $0.isFavorite }.count
         

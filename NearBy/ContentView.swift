@@ -16,6 +16,7 @@ struct ContentView: View {
     @StateObject private var auth = AuthService.shared
     @State private var isLoaded = false
     @State private var tab: Tab = .map
+    private var placeSync: PlaceSyncCoordinator { .shared }
     
     var body: some View {
         
@@ -52,6 +53,7 @@ struct ContentView: View {
             }
             else if auth.currentUser == nil {
                 AuthGate()
+                    .onAppear { placeSync.stop() }
             }
             else {
                 
@@ -80,6 +82,11 @@ struct ContentView: View {
                                 NavigationView {
                                     ProfileView()
                                 }
+                            }
+                        }
+                        .onAppear {
+                            if let uid = auth.currentUser?.id {
+                                placeSync.startIfNeeded(userId: uid)
                             }
                         }
                         

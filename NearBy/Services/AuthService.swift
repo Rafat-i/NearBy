@@ -165,6 +165,12 @@ class AuthService: ObservableObject {
             DispatchQueue.main.async {
                 self.currentUser = nil
             }
+            PlaceSyncCoordinator.shared.stop()
+            do {
+                try CoreDataManager.shared.resetAllData()
+            } catch {
+                print("Error resetting Core Data on sign out: \(error)")
+            }
             return .success(())
         } catch {
             print("Sign out error: \(error.localizedDescription)")
