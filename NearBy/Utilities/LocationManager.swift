@@ -25,6 +25,10 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
         manager.desiredAccuracy = kCLLocationAccuracyBest
         manager.requestWhenInUseAuthorization()
         manager.startUpdatingLocation()
+        
+    #if targetEnvironment(simulator)
+    userLocation = CLLocationCoordinate2D(latitude: 45.5017, longitude: -73.5673)
+    #endif
     }
     
     
@@ -45,6 +49,9 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
         _ manager: CLLocationManager,
         didUpdateLocations locations: [CLLocation]
     ) {
+    #if targetEnvironment(simulator)
+    return
+    #endif
         guard let latestLocation = locations.last else { return }
         
         DispatchQueue.main.async {

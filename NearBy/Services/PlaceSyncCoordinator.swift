@@ -2,7 +2,7 @@
 //  PlaceSyncCoordinator.swift
 //  NearBy
 //
-//  Created by Rafat on 2026-02-07.
+//  Created by Rafat on 2026-03-07.
 //
 
 import Foundation

@@ -32,8 +32,13 @@ class DashboardViewModel: ObservableObject {
 
         let predicate = NSPredicate(format: "userId == %@", userId)
         let allPlaces = (try? coreData.fetch(PlaceEntity.self, predicate: predicate)) ?? []
-        totalVisited = allPlaces.count
+        totalVisited = allPlaces.filter { $0.lastViewed != nil }.count
         favouriteCount = allPlaces.filter { $0.isFavorite }.count
+
+        AuthService.shared.updateUserStats(
+            favoriteCount: favouriteCount,
+            visitedPlacesCount: totalVisited
+        ) { _ in }
         
         recentPlaces = allPlaces
             .filter { $0.lastViewed != nil }
@@ -175,9 +180,6 @@ struct RecentRow: View {
             Spacer()
             
             HStack(spacing: 4) {
-                if entity.isFavorite {
-                    Image(systemName: "heart.fill").font(.caption2).foregroundColor(.red)
-                }
                 Image(systemName: "chevron.right").font(.caption2).foregroundColor(.secondary)
             }
         }
