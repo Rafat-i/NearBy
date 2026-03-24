@@ -67,6 +67,15 @@ struct ProfileView: View {
                             Text("Edit Username")
                         }
                     }
+
+                    NavigationLink {
+                        SettingsView()
+                    } label: {
+                        HStack {
+                            Image(systemName: "gearshape")
+                            Text("Settings")
+                        }
+                    }
                 }
                 
                 if let errorText {

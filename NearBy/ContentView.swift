@@ -16,6 +16,7 @@ struct ContentView: View {
     @StateObject private var auth = AuthService.shared
     @State private var isLoaded = false
     @State private var tab: Tab = .map
+    @State private var shouldShowOnboarding = false
     private var placeSync: PlaceSyncCoordinator { .shared }
     
     var body: some View {
@@ -53,7 +54,16 @@ struct ContentView: View {
             }
             else if auth.currentUser == nil {
                 AuthGate()
-                    .onAppear { placeSync.stop() }
+                    .onAppear {
+                        placeSync.stop()
+                        shouldShowOnboarding = false
+                    }
+            }
+            else if shouldShowOnboarding {
+                OnboardingView {
+                    markOnboardingCompleted()
+                    shouldShowOnboarding = false
+                }
             }
             else {
                 
@@ -87,6 +97,7 @@ struct ContentView: View {
                         .onAppear {
                             if let uid = auth.currentUser?.id {
                                 placeSync.startIfNeeded(userId: uid)
+                                UserSettingsStore.shared.loadForCurrentUser()
                             }
                         }
                         
@@ -131,8 +142,30 @@ struct ContentView: View {
                         .ignoresSafeArea(edges: .bottom)
                     }
                 }
+                .onAppear {
+                    refreshOnboardingState()
+                }
             }
         }
+    }
+
+    private func onboardingKey(for userId: String) -> String {
+        "onboarding_completed_\(userId)"
+    }
+
+    private func refreshOnboardingState() {
+        guard let userId = auth.currentUser?.id else {
+            shouldShowOnboarding = false
+            return
+        }
+        let key = onboardingKey(for: userId)
+        shouldShowOnboarding = !UserDefaults.standard.bool(forKey: key)
+    }
+
+    private func markOnboardingCompleted() {
+        guard let userId = auth.currentUser?.id else { return }
+        let key = onboardingKey(for: userId)
+        UserDefaults.standard.set(true, forKey: key)
     }
 }
 
@@ -160,12 +193,6 @@ struct DashboardView: View {
     var body: some View {
         Text("Dashboard - Coming Soon")
             .navigationTitle("Home")
-    }
-}
-struct PlacesListView: View {
-    var body: some View {
-        Text("Places List - Coming Soon")
-            .navigationTitle("Places")
     }
 }
 

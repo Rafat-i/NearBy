@@ -102,6 +102,7 @@ struct MapView: View {
 
     @StateObject private var locationManager = LocationManager()
     @StateObject private var completerDelegate = SearchCompleterDelegate()
+    @StateObject private var settings = UserSettingsStore.shared
 
     private let completer = MKLocalSearchCompleter()
 
@@ -184,7 +185,11 @@ struct MapView: View {
                     }
                 }
             }
-            .mapStyle(.standard)
+            .mapStyle(
+                settings.mapStyle == "imagery" ? .imagery :
+                settings.mapStyle == "hybrid" ? .hybrid :
+                .standard
+            )
             .onMapCameraChange { context in
                 currentCenter = context.region.center
             }
@@ -329,6 +334,8 @@ struct MapView: View {
         }
         .onAppear {
             loadPlaces()
+            settings.loadForCurrentUser()
+            zoomLevel = settings.defaultRadius > 0 ? settings.defaultRadius : zoomLevel
             completer.delegate = completerDelegate
             completer.resultTypes = [.address, .pointOfInterest, .query]
             if let userLocation = locationManager.userLocation {
@@ -352,6 +359,7 @@ struct MapView: View {
             guard destination != nil else { return }
             runSearch()
         }
+        
     }
 
 
