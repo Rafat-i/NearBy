@@ -49,7 +49,6 @@ enum TransportMode: String, CaseIterable, Identifiable {
     }
 }
 
-
 struct SearchSuggestion: Identifiable {
     let id = UUID()
     let title: String
@@ -86,8 +85,15 @@ struct MapView: View {
     @State private var currentCenter: CLLocationCoordinate2D?
 
     @State private var places: [Place] = []
+    var filteredPlaces: [Place] {
+        if let selectedCategory = selectedCategory {
+            return places.filter { $0.category.localizedCaseInsensitiveContains(selectedCategory.name) }
+        }
+        return places
+    }
     @State private var isLoading = true
     @State private var selectedPlace: Place?
+    @State private var selectedCategory: Category?
 
     @State private var searchText: String = ""
     @State private var isSearchBarFocused: Bool = false
@@ -171,8 +177,8 @@ struct MapView: View {
                     MapPolyline(route.polyline)
                         .stroke(selectedTransport.color, lineWidth: 5)
                 }
-
-                ForEach(places) { place in
+//MARK: -Annotations
+                ForEach(selectedCategory == nil ? places : filteredPlaces) { place in
                     Annotation(place.name, coordinate: place.coordinate) {
                         Image(systemName: categoryIcon(for: place.category))
                             .resizable()
@@ -217,6 +223,7 @@ struct MapView: View {
                                     runSearch()
                                 }
                                 .onChange(of: searchText) { _, newValue in
+                                    selectedCategory = Category.defaultCategories.last!
                                     isSearchBarFocused = true
                                     completer.queryFragment = newValue
                                 }
@@ -239,10 +246,12 @@ struct MapView: View {
                         .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 2)
 
                         Button {
+                            print("Search Category \(selectedCategory)")
                             if route != nil || isSearching {
                                 clearSearch()
                             } else {
                                 isSearchBarFocused = false
+                                
                                 runSearch()
                             }
                         } label: {
@@ -284,7 +293,7 @@ struct MapView: View {
 
                 HStack {
                     Spacer()
-                    NavigationLink(destination: CategoriesView(filter: MapFilter())) {
+                    NavigationLink(destination: CategoriesView(selectedCategory: $selectedCategory)) {
                         Image(systemName: "slider.vertical.3")
                             .font(.title2)
                             .foregroundStyle(.blue)
@@ -504,7 +513,7 @@ struct MapView: View {
         .background(.ultraThinMaterial)
     }
 
-
+//MARK: - LOADPlaces()
     private func loadPlaces() {
         isLoading = true
         FirebaseService.shared.fetchNearbyPlaces { result in
@@ -724,9 +733,10 @@ struct MapView: View {
         case "education":               return "graduationcap.fill"
         case "parks":                   return "tree.fill"
         case "entertainment":           return "theatermasks.fill"
-        case "restaurants", "cafes":    return "fork.knife"
+        case "restaurants":    return "fork.knife"
         case "shopping":                return "cart.fill"
         case "libraries":               return "book.fill"
+        case "cafes":           return "cup.and.saucer.fill"
         default:                        return "mappin.circle.fill"
         }
     }

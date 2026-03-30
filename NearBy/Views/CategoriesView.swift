@@ -10,10 +10,9 @@
 
     struct CategoriesView: View {
         @Environment(\.dismiss) private var dismiss
-        @ObservedObject var filter: MapFilter
+        @Binding var selectedCategory: Category?
         let categories = Category.defaultCategories
-        
-            
+
         var body: some View {
             HStack{
                 Text("Filter")
@@ -24,7 +23,7 @@
             
             ScrollView{
                     Button(action:{
-                        filter.selectedCategory = nil
+                        selectedCategory = nil
                         dismiss()
                     }) {
                         Text("All")
@@ -43,7 +42,7 @@
                     ForEach(categories) { category in
                         VStack(alignment: .leading){
                             Button(action: {
-                                filter.selectedCategory = category
+                                selectedCategory = category
                                 dismiss()
                             }) {
                                 CategoryCard(category:category)
@@ -78,8 +77,3 @@
             )
         }
     }
-
-
-#Preview {
-    CategoriesView(filter: MapFilter())
-}

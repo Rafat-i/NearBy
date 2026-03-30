@@ -26,11 +26,13 @@ struct Category: Identifiable, Codable {
 extension Category {
     static let defaultCategories: [Category] = [
         Category(id: "restaurants", name: "Restaurants", iconName: "fork.knife", colorHex: "RestaurantColor"),
-        Category(id: "cafes", name: "Cafés", iconName: "cup.and.saucer", colorHex: "CafeColor"),
+        Category(id: "cafes", name: "Cafes", iconName: "cup.and.saucer", colorHex: "CafeColor"),
         Category(id: "parks", name: "Parks", iconName: "tree", colorHex: "ParkColor"),
         Category(id: "shopping", name: "Shopping", iconName: "cart", colorHex: "ShoppingColor"),
         Category(id: "libraries", name: "Libraries", iconName: "book", colorHex: "LibraryColor"),
         Category(id: "education", name: "Education", iconName: "graduationcap", colorHex: "EducationColor"),
-        Category(id: "entertainment", name: "Entertainment", iconName: "theatermasks", colorHex: "EntertainmentColor")
+        Category(id: "entertainment", name: "Entertainment", iconName: "theatermasks", colorHex: "EntertainmentColor"),
+        Category(id: "none", name: "none", iconName: "", colorHex: "")
     ]
 }
+ 

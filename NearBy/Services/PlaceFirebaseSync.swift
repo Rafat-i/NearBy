@@ -172,7 +172,6 @@ final class PlaceFirebaseSync {
         }
     }
 
-
     private func serialize(place: PlaceEntity) -> [String: Any] {
         var out: [String: Any] = [
             "name": place.name ?? "",

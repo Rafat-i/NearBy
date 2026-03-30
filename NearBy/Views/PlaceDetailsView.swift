@@ -16,11 +16,14 @@ class PlaceDetailViewModel: ObservableObject {
 
     @Published var isFavorite: Bool = false
     @Published var noteText: String = ""
+    @Published var myRating: Double = 0.0
     @Published var showNoteEditor: Bool = false
+    @Published var showRatingEditor: Bool = false
     @Published var noteSavedMessage: String?
     @Published var favouriteSavedMessage: String?
     @Published var errorMessage: String?
     @Published var cameraPosition: MapCameraPosition = .automatic
+    @State var isShowingRating: Bool = false
 
     let place: Place
     private let coreData = CoreDataManager.shared
@@ -194,6 +197,11 @@ struct PlaceDetailView: View {
         }
         .sheet(isPresented: $vm.showNoteEditor) {
             NoteEditorView(noteText: $vm.noteText, onSave: { vm.saveNote() })
+                .presentationDetents([.height(400)])
+        }
+        .sheet(isPresented: $vm.showRatingEditor) {
+            RatingEditorView(myRating: $vm.myRating, onSave: {()})
+                .presentationDetents([.height(180)])
         }
     }
 
@@ -254,15 +262,21 @@ struct PlaceDetailView: View {
         .clipShape(RoundedRectangle(cornerRadius: 16))
         .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 2)
     }
-
+//MARK: - BTNs
     private var quickActionsRow: some View {
         HStack(spacing: 12) {
+            actionButton(
+                label: vm.myRating.isEqual(to: 0.0) ? "Rate" : "Edit My Rating",
+                icon: vm.myRating.isEqual(to: 0.0) ? "star" : "star.fill",
+                color: .yellow
+            ) { vm.showRatingEditor = true }
+
             actionButton(
                 label: vm.noteText.isEmpty ? "Add Note" : "Edit Note",
                 icon: "note.text",
                 color: .orange
             ) { vm.showNoteEditor = true }
-
+            
             actionButton(
                 label: vm.isFavorite ? "Saved" : "Save",
                 icon: vm.isFavorite ? "heart.fill" : "heart",
@@ -270,7 +284,6 @@ struct PlaceDetailView: View {
             ) { vm.toggleFavorite() }
         }
     }
-
     @ViewBuilder
     private var infoSection: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -303,7 +316,7 @@ struct PlaceDetailView: View {
             .shadow(color: .black.opacity(0.05), radius: 6, x: 0, y: 2)
         }
     }
-
+//MARK: -Notes
     @ViewBuilder
     private var notesSection: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -458,6 +471,52 @@ struct NoteEditorView: View {
         }
     }
 }
+
+struct RatingEditorView: View {
+    @Environment(\.dismiss) private var dismiss
+    @Binding var myRating: Double
+    
+    let onSave: () -> Void
+    
+    var body: some View{
+        NavigationStack {
+            VStack(spacing: 12) {
+                ZStack{
+                    //Background Star
+                    HStack(spacing: 5) {
+                        ForEach(1...5, id: \.self) { index in
+                            Image(systemName: "star.fill")
+                                .font(.system(size: 50))
+                                .foregroundStyle(Double(index) <= myRating ? .yellow : .gray.opacity(0.2))
+                                .onTapGesture {
+                                    withAnimation(.spring(response: 0.3, dampingFraction: 0.5)) {
+                                        myRating = Double(index)
+                                    }
+                                }
+                        }
+                    }
+                }
+            }.navigationTitle("My Rating")
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
+                    ToolbarItem(placement: .confirmationAction) {
+                        Button("Save") { onSave(); dismiss() }.fontWeight(.semibold)
+                    }
+                }
+        }
+    }
+    
+    private var ratingStars: some View {
+        HStack(spacing: 5){
+            ForEach(0..<5){ index in
+                Image(systemName: "star.fill")
+                    .imageScale(.large)
+            }
+        }
+    }
+}
+
 
 #Preview {
     NavigationView {

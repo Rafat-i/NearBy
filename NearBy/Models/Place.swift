@@ -20,7 +20,7 @@ struct Place: Identifiable, Codable {
     var phone: String?
     var photoURL: String?
     var website: String?
-    
+
     var coordinate: CLLocationCoordinate2D {
         CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
     }
