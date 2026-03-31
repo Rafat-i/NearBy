@@ -177,7 +177,6 @@ struct MapView: View {
                     MapPolyline(route.polyline)
                         .stroke(selectedTransport.color, lineWidth: 5)
                 }
-//MARK: -Annotations
                 ForEach(selectedCategory == nil ? places : filteredPlaces) { place in
                     Annotation(place.name, coordinate: place.coordinate) {
                         Image(systemName: categoryIcon(for: place.category))
@@ -512,8 +511,6 @@ struct MapView: View {
         .padding()
         .background(.ultraThinMaterial)
     }
-
-//MARK: - LOADPlaces()
     private func loadPlaces() {
         isLoading = true
         FirebaseService.shared.fetchNearbyPlaces { result in
