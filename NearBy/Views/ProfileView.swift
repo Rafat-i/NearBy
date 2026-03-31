@@ -76,6 +76,14 @@ struct ProfileView: View {
                             Text("Settings")
                         }
                     }
+                    NavigationLink {
+                        OfflinePlacesView()
+                    } label: {
+                        HStack {
+                            Image(systemName: "wifi.slash")
+                            Text("Offline Places")
+                        }
+                    }
                 }
                 
                 if let errorText {
