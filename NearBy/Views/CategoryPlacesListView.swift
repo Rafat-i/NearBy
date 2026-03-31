@@ -46,6 +46,7 @@ struct CategoryPlacesListView: View {
     }
 
     var body: some View {
+        
         VStack(spacing: 10) {
             HStack(spacing: 8) {
                 Image(systemName: "magnifyingglass").foregroundColor(.secondary)
