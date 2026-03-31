@@ -18,7 +18,6 @@ class PlaceDetailViewModel: ObservableObject {
     @Published var noteText: String = ""
     @Published var showNoteEditor: Bool = false
     @Published var noteSavedMessage: String?
-    @Published var placeSavedMessage: String?
     @Published var favouriteSavedMessage: String?
     @Published var errorMessage: String?
     @Published var cameraPosition: MapCameraPosition = .automatic
@@ -73,7 +72,6 @@ class PlaceDetailViewModel: ObservableObject {
         entity.website       = place.website
         entity.photoUrl      = place.photoURL
         entity.isFavorite    = false
-        entity.firstView     = true
         entity.lastViewed    = Date()
         return entity
     }
@@ -124,22 +122,6 @@ class PlaceDetailViewModel: ObservableObject {
             errorMessage = "Could not save note: \(error.localizedDescription)"
         }
     }
-    func newPlaceView(){
-        guard let placeEntity = fetchOrCreatePlaceEntity() else { return }
-        let lastViewed = placeEntity.firstView
-        let add = lastViewed ? 1 : 0
-        placeEntity.firstView = false
-        
-        do {
-            try sync.saveAndSyncMainContext()
-    
-            let current = AuthService.shared.currentUser?.visitedPlacesCount ?? 0
-            AuthService.shared.updateUserStats(visitedPlacesCount: max(0, current + add)) { _ in }
-        } catch {
-            errorMessage = "Could not save place: \(error.localizedDescription)"
-        }
-    }
-        
 }
 
 struct PlaceDetailView: View {
@@ -188,7 +170,6 @@ struct PlaceDetailView: View {
                 .transition(.move(edge: .bottom).combined(with: .opacity))
                 .animation(.spring(response: 0.4, dampingFraction: 0.7), value: vm.favouriteSavedMessage)
             }
-
         }
         .ignoresSafeArea(edges: .top)
         .navigationBarTitleDisplayMode(.inline)
@@ -204,10 +185,8 @@ struct PlaceDetailView: View {
         .sheet(isPresented: $vm.showNoteEditor) {
             NoteEditorView(noteText: $vm.noteText, onSave: { vm.saveNote() })
         }
-        .onAppear(){
-            vm.newPlaceView()
-        }
     }
+
     private var mapSnapshotSection: some View {
         ZStack(alignment: .bottom) {
             Map(position: $vm.cameraPosition) {
