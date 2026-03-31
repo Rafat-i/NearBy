@@ -103,6 +103,9 @@ struct MapView: View {
     @StateObject private var locationManager = LocationManager()
     @StateObject private var completerDelegate = SearchCompleterDelegate()
     @StateObject private var settings = UserSettingsStore.shared
+    
+    @State private var isNavBarVisible: Bool = true
+    @State private var searchBarOffset: CGFloat = 0
 
     private let completer = MKLocalSearchCompleter()
 
@@ -185,6 +188,7 @@ struct MapView: View {
                     }
                 }
             }
+            .ignoresSafeArea()
             .mapStyle(
                 settings.mapStyle == "imagery" ? .imagery :
                 settings.mapStyle == "hybrid" ? .hybrid :
@@ -201,14 +205,43 @@ struct MapView: View {
             }
 
             VStack(spacing: 0) {
+                        
+                
+                Spacer()
+                
+                HStack {
+                    
+                    Spacer()
+                    zoomControls
+                }
+                .padding(.horizontal)
+                .padding(.bottom, 16)
+                
+                if route != nil {
+                    HStack(alignment: .bottom) {
+                        RouteInfoCard(duration: timeDuration, distance: distance, transport: selectedTransport)
+                        Spacer()
+                    }
+                    .padding(.horizontal)
+                    .padding(.bottom, 12)
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
+                }
+                
+                if route != nil || isSearching {
+                    transportPicker
+                        .padding(.horizontal)
+                        .padding(.bottom, 8)
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
+                }
+                
                 VStack(spacing: 6) {
                     HStack(spacing: 10) {
                         HStack(spacing: 8) {
                             Image(systemName: "magnifyingglass")
                                 .foregroundColor(.gray)
                                 .font(.system(size: 16))
-
-                            TextField("Search for a place...", text: $searchText)
+                            
+                            TextField("Search for a place ...", text: $searchText)
                                 .textInputAutocapitalization(.never)
                                 .disableAutocorrection(true)
                                 .submitLabel(.search)
@@ -220,7 +253,7 @@ struct MapView: View {
                                     isSearchBarFocused = true
                                     completer.queryFragment = newValue
                                 }
-
+                            
                             if !searchText.isEmpty {
                                 Button {
                                     searchText = ""
@@ -237,10 +270,13 @@ struct MapView: View {
                         .background(.ultraThinMaterial)
                         .cornerRadius(10)
                         .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 2)
-
+                        
                         Button {
                             if route != nil || isSearching {
                                 clearSearch()
+                                withAnimation(.easeInOut(duration: 0.3)) {
+                                    isNavBarVisible = true
+                                }
                             } else {
                                 isSearchBarFocused = false
                                 runSearch()
@@ -262,68 +298,24 @@ struct MapView: View {
                         .background(route != nil ? Color.red : Color.blue)
                         .cornerRadius(10)
                         .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 2)
-                        .disabled(
-                            searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-                            && route == nil
-                        )
+                        .disabled(searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && route == nil)
+                        
+                        NavigationLink(destination: CategoriesView(filter: MapFilter())) {
+                            Image(systemName: "slider.vertical.3")
+                                .font(.system(size: 18))
+                                .foregroundStyle(.blue)
+                                .frame(width: 50, height: 50)
+                                .background(.ultraThinMaterial)
+                                .clipShape(RoundedRectangle(cornerRadius: 10))
+                                .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 2)
+                        }
                     }
-
                     if isSearchBarFocused && !combinedSuggestions.isEmpty {
                         suggestionsDropdown
                     }
                 }
                 .padding(.horizontal)
-                .padding(.top, 60)
-
-                if route != nil || isSearching {
-                    transportPicker
-                        .padding(.horizontal)
-                        .padding(.top, 6)
-                        .transition(.move(edge: .top).combined(with: .opacity))
-                }
-
-                HStack {
-                    Spacer()
-                    NavigationLink(destination: CategoriesView(filter: MapFilter())) {
-                        Image(systemName: "slider.vertical.3")
-                            .font(.title2)
-                            .foregroundStyle(.blue)
-                            .padding()
-                            .background(.ultraThinMaterial)
-                            .clipShape(Circle())
-                            .shadow(radius: 6)
-                    }
-                }
-                .padding()
-
-                Spacer()
-
-                HStack {
-                    Spacer()
-                    zoomControls
-                }
-                .padding(.horizontal)
-                .padding(.bottom, 100)
-            }
-
-            if route != nil {
-                VStack {
-                    Spacer()
-                    HStack(alignment: .bottom) {
-                        RouteInfoCard(
-                            duration:  timeDuration,
-                            distance:  distance,
-                            transport: selectedTransport
-                        )
-                        Spacer()
-                    }
-                    .padding(.horizontal)
-                    .padding(.bottom, 100)
-                }
-            }
-
-            if isLoading {
-                ProgressView().scaleEffect(1.5)
+                .padding(.bottom, 16)
             }
         }
         .navigationBarHidden(true)
