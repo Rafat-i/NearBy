@@ -26,7 +26,9 @@ final class NetworkMonitor: ObservableObject {
             }
         }
         monitor.start(queue: queue)
-        
     }
-    
+}
+
+extension Notification.Name {
+    static let refreshDashboard = Notification.Name("refreshDashboard")
 }

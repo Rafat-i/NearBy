@@ -15,11 +15,11 @@ class DashboardViewModel: ObservableObject {
     @Published var recentPlaces: [PlaceEntity] = []
     @Published var totalVisited: Int = 0
     @Published var userName: String = "Explorer"
-    
+
     private let coreData = CoreDataManager.shared
-    
+
     init() { load() }
-    
+
     func load() {
         userName = AuthService.shared.currentUser?.username ?? "Explorer"
 
@@ -39,18 +39,17 @@ class DashboardViewModel: ObservableObject {
             favoriteCount: favouriteCount,
             visitedPlacesCount: totalVisited
         ) { _ in }
-        
+
         recentPlaces = allPlaces
             .filter { $0.lastViewed != nil }
-            .sorted {($0.lastViewed ?? .distantPast) > ($1.lastViewed ?? .distantPast)}
+            .sorted { ($0.lastViewed ?? .distantPast) > ($1.lastViewed ?? .distantPast) }
             .prefix(5).map { $0 }
     }
 }
 
-
 struct DashView: View {
     @StateObject private var vm = DashboardViewModel()
-    
+
     private var greeting: String {
         let hour = Calendar.current.component(.hour, from: Date())
         switch hour {
@@ -59,7 +58,7 @@ struct DashView: View {
         default: return "Good Evening,"
         }
     }
-    
+
     var body: some View {
         NavigationStack {
             ScrollView {
@@ -72,23 +71,23 @@ struct DashView: View {
                             .font(.largeTitle).fontWeight(.bold)
                     }
                     .padding(.top, 8)
-                    
+
                     HStack(spacing: 12) {
                         StatCard(value: "\(vm.totalVisited)", label: "Visited", icon: "mappin.circle.fill", color: .blue)
                         StatCard(value: "\(vm.favouriteCount)", label: "Favourites", icon: "heart.fill", color: .red)
                         StatCard(value: "\(vm.recentPlaces.count)", label: "Recent", icon: "clock.fill", color: .orange)
                     }
-                    
+
                     if !vm.recentPlaces.isEmpty {
                         VStack(alignment: .leading, spacing: 12) {
                             Text("Recent Viewed")
                                 .font(.headline).fontWeight(.semibold)
-                            
+
                             VStack(spacing: 10) {
                                 ForEach(vm.recentPlaces, id: \.id) { entity in
                                     NavigationLink(destination:
-                                                    PlaceDetailView(place: makePlace(from: entity))
-                                        .onDisappear { vm.load() }
+                                        PlaceDetailView(place: makePlace(from: entity))
+                                            .onDisappear { vm.load() }
                                     ) {
                                         RecentRow(entity: entity)
                                     }
@@ -114,8 +113,12 @@ struct DashView: View {
             .navigationTitle("NearBy")
             .navigationBarTitleDisplayMode(.large)
             .onAppear { vm.load() }
+            .onReceive(NotificationCenter.default.publisher(for: .refreshDashboard)) { _ in
+                vm.load()
+            }
         }
     }
+
     private func makePlace(from entity: PlaceEntity) -> Place {
         Place(
             id: entity.id,
@@ -137,7 +140,7 @@ struct StatCard: View {
     let label: String
     let icon: String
     let color: Color
-    
+
     var body: some View {
         VStack(spacing: 8) {
             Image(systemName: icon)
@@ -161,7 +164,7 @@ struct StatCard: View {
 
 struct RecentRow: View {
     let entity: PlaceEntity
-    
+
     var body: some View {
         HStack(spacing: 14) {
             Image(systemName: categoryIcon(entity.placeCategory ?? ""))
@@ -169,7 +172,7 @@ struct RecentRow: View {
                 .foregroundStyle(.white)
                 .padding(10)
                 .background(categoryColor(entity.placeCategory ?? "").gradient, in: .circle)
-            
+
             VStack(alignment: .leading, spacing: 3) {
                 Text(entity.name ?? "")
                     .font(.subheadline).fontWeight(.semibold)
@@ -178,39 +181,37 @@ struct RecentRow: View {
                     .font(.caption).foregroundColor(.secondary).lineLimit(1)
             }
             Spacer()
-            
-            HStack(spacing: 4) {
-                Image(systemName: "chevron.right").font(.caption2).foregroundColor(.secondary)
-            }
+
+            Image(systemName: "chevron.right").font(.caption2).foregroundColor(.secondary)
         }
         .padding(14)
         .background(Color(.systemBackground))
         .clipShape(RoundedRectangle(cornerRadius: 12))
     }
-    
+
     private func categoryIcon(_ category: String) -> String {
         switch category.lowercased() {
-        case "education":    return "graduationcap.fill"
-        case "parks":        return "tree.fill"
+        case "education":     return "graduationcap.fill"
+        case "parks":         return "tree.fill"
         case "entertainment": return "theatermasks.fill"
-        case "restaurants":  return "fork.knife"
-        case "cafes":        return "cup.and.saucer.fill"
+        case "restaurants":   return "fork.knife"
+        case "cafes":         return "cup.and.saucer.fill"
         case "shopping":      return "cart.fill"
-        case "libraries":    return "book.fill"
-        default:             return "mappin.circle.fill"
+        case "libraries":     return "book.fill"
+        default:              return "mappin.circle.fill"
         }
     }
-    
+
     private func categoryColor(_ category: String) -> Color {
         switch category.lowercased() {
-        case "education":   return .orange
-        case "parks":       return .green
+        case "education":     return .orange
+        case "parks":         return .green
         case "entertainment": return .purple
-        case "restaurants": return .red
-        case "cafes":       return .brown
-        case "shopping":     return .pink
-        case "libraries":   return .blue
-        default:            return .gray
+        case "restaurants":   return .red
+        case "cafes":         return .brown
+        case "shopping":      return .pink
+        case "libraries":     return .blue
+        default:              return .gray
         }
     }
 }

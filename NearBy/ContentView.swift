@@ -8,44 +8,42 @@
 import SwiftUI
 
 struct ContentView: View {
-    
+
     enum Tab {
         case home, map, places, favorites, profile
     }
-    
+
     @StateObject private var auth = AuthService.shared
     @State private var isLoaded = false
     @State private var tab: Tab = .map
     @State private var shouldShowOnboarding = false
     private var placeSync: PlaceSyncCoordinator { .shared }
-    
+
     var body: some View {
-        
+
         Group {
             if !isLoaded {
-                
+
                 ZStack {
                     Color(.systemBackground)
                         .ignoresSafeArea()
-                    
+
                     VStack(spacing: 20) {
                         Image("NearByIcon")
                                 .resizable()
                                 .scaledToFit()
                                 .frame(width: 80, height: 80)
-                        
+
                         Text("NearBy")
                             .font(.largeTitle)
                             .fontWeight(.bold)
-                        
+
                         ProgressView()
                             .scaleEffect(1.2)
                     }
                 }
                 .task {
-                    
                     auth.fetchCurrentUser { _ in
-                        
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                             isLoaded = true
                         }
@@ -66,9 +64,9 @@ struct ContentView: View {
                 }
             }
             else {
-                
+
                 ZStack(alignment: .bottom) {
-                    
+
                     VStack {
                         Group {
                             switch tab {
@@ -100,32 +98,33 @@ struct ContentView: View {
                                 UserSettingsStore.shared.loadForCurrentUser()
                             }
                         }
-                        
+
                         HStack {
                             TabButton(title: "Home", image: "house.fill", isSelected: tab == .home) {
                                 tab = .home
+                                NotificationCenter.default.post(name: .refreshDashboard, object: nil)
                             }
-                            
+
                             Spacer()
-                            
+
                             TabButton(title: "Map", image: "map.fill", isSelected: tab == .map) {
                                 tab = .map
                             }
-                            
+
                             Spacer()
-                            
+
                             TabButton(title: "Places", image: "list.bullet", isSelected: tab == .places) {
                                 tab = .places
                             }
-                            
+
                             Spacer()
-                            
+
                             TabButton(title: "Favorites", image: "heart.fill", isSelected: tab == .favorites) {
                                 tab = .favorites
                             }
-                            
+
                             Spacer()
-                            
+
                             TabButton(title: "Profile", image: "person.fill", isSelected: tab == .profile) {
                                 tab = .profile
                             }
@@ -174,7 +173,7 @@ struct TabButton: View {
     let image: String
     let isSelected: Bool
     let action: () -> Void
-    
+
     var body: some View {
         Button(action: action) {
             VStack(spacing: 4) {
@@ -187,7 +186,6 @@ struct TabButton: View {
         }
     }
 }
-
 
 struct DashboardView: View {
     var body: some View {

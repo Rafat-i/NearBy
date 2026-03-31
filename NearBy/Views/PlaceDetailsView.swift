@@ -34,23 +34,14 @@ class PlaceDetailViewModel: ObservableObject {
     }
 
     private func loadPlaceState() {
-        guard
-            let placeID = place.id,
-            let userId = AuthService.shared.currentUser?.id
-        else { return }
-
-        let predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [
-            NSPredicate(format: "id == %@", placeID),
-            NSPredicate(format: "userId == %@", userId)
-        ])
-        guard let entity = try? coreData.fetchFirst(PlaceEntity.self, predicate: predicate) else { return }
+        guard let entity = fetchOrCreatePlaceEntity() else { return }
         isFavorite = entity.isFavorite
         noteText   = entity.userNotes ?? ""
         entity.lastViewed = Date()
         try? sync.saveAndSyncMainContext()
     }
 
-    private func fetchOrCreatePlaceEntity() -> PlaceEntity? {
+    func fetchOrCreatePlaceEntity() -> PlaceEntity? {
         guard
             let placeID = place.id,
             let userId = AuthService.shared.currentUser?.id
@@ -197,7 +188,7 @@ struct PlaceDetailView: View {
                 .transition(.move(edge: .bottom).combined(with: .opacity))
                 .animation(.spring(response: 0.4, dampingFraction: 0.7), value: vm.favouriteSavedMessage)
             }
-            
+
         }
         .ignoresSafeArea(edges: .top)
         .navigationBarTitleDisplayMode(.inline)
