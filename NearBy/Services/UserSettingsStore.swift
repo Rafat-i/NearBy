@@ -18,7 +18,7 @@ final class UserSettingsStore: ObservableObject {
     @Published var units: String = "metric"
 
     private let coreData = CoreDataManager.shared
-    private var loadedUserId: String?
+    fileprivate var loadedUserId: String?
 
     private init() {}
 
@@ -73,5 +73,10 @@ final class UserSettingsStore: ObservableObject {
 
         try? coreData.saveContext()
     }
+    
+    func forceReload() {
+            loadedUserId = nil
+            loadForCurrentUser()
+        }
 }
 

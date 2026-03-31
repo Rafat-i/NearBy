@@ -59,6 +59,7 @@ struct OnboardingView: View {
                     if page < 2 {
                         withAnimation { page += 1 }
                     } else {
+                        locationManager.requestPermission()
                         onFinish()
                     }
                 }

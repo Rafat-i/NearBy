@@ -55,7 +55,7 @@ struct SettingsView: View {
         .navigationTitle("Settings")
         .navigationBarTitleDisplayMode(.inline)
         .onAppear {
-            settings.loadForCurrentUser()
+            settings.forceReload()
             radius = settings.defaultRadius
             mapStyle = settings.mapStyle
             units = settings.units
@@ -73,6 +73,7 @@ struct SettingsView: View {
         }
     }
 }
+
 
 #Preview {
     NavigationStack {

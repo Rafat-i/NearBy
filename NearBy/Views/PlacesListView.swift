@@ -5,6 +5,7 @@
 //  Created by Rafat on 2026-03-09.
 //
 
+
 import SwiftUI
 import CoreLocation
 import Combine
@@ -13,8 +14,8 @@ import Combine
 final class PlacesListViewModel: ObservableObject {
     enum SortOption: String, CaseIterable, Identifiable {
         case distance = "Distance"
-        case rating = "Rating"
-        case name = "Name"
+        case rating   = "Rating"
+        case name     = "Name"
 
         var id: String { rawValue }
     }
@@ -24,6 +25,8 @@ final class PlacesListViewModel: ObservableObject {
     @Published var errorMessage: String?
     @Published var searchText = ""
     @Published var selectedCategory: Category?
+    @Published var selectedDistance: Double? = nil
+    @Published var minimumRating: Double = 0
     @Published var sortOption: SortOption = .distance
 
     private let locationManager = LocationManager()
@@ -44,29 +47,51 @@ final class PlacesListViewModel: ObservableObject {
         }
     }
 
+    var activeFilterCount: Int {
+        (selectedCategory != nil ? 1 : 0) +
+        (selectedDistance != nil ? 1 : 0) +
+        (minimumRating > 0 ? 1 : 0)
+    }
+
     var filteredAndSorted: [Place] {
         let q = searchText.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        let userLoc: CLLocation? = {
+            guard let u = locationManager.userLocation else { return nil }
+            return CLLocation(latitude: u.latitude, longitude: u.longitude)
+        }()
 
         let filtered = places.filter { place in
             let matchesText = q.isEmpty
                 || place.name.lowercased().contains(q)
                 || place.address.lowercased().contains(q)
                 || place.category.lowercased().contains(q)
+
             let matchesCategory = selectedCategory == nil
                 || place.category.lowercased() == selectedCategory?.name.lowercased()
-            return matchesText && matchesCategory
+
+            let matchesDistance: Bool = {
+                guard let maxDist = selectedDistance, let userLoc else { return true }
+                let placeLoc = CLLocation(latitude: place.latitude, longitude: place.longitude)
+                return userLoc.distance(from: placeLoc) <= maxDist
+            }()
+
+            let matchesRating = place.rating >= minimumRating
+
+            return matchesText && matchesCategory && matchesDistance && matchesRating
         }
 
         switch sortOption {
         case .name:
-            return filtered.sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
+            return filtered.sorted {
+                $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending
+            }
         case .rating:
             return filtered.sorted { $0.rating > $1.rating }
         case .distance:
-            guard let user = locationManager.userLocation else { return filtered }
-            let userLoc = CLLocation(latitude: user.latitude, longitude: user.longitude)
+            guard let userLoc else { return filtered }
             return filtered.sorted {
-                distance(from: userLoc, to: $0.coordinate) < distance(from: userLoc, to: $1.coordinate)
+                userLoc.distance(from: CLLocation(latitude: $0.latitude, longitude: $0.longitude)) <
+                userLoc.distance(from: CLLocation(latitude: $1.latitude, longitude: $1.longitude))
             }
         }
     }
@@ -74,56 +99,66 @@ final class PlacesListViewModel: ObservableObject {
     func distanceText(for place: Place, units: String) -> String? {
         guard let user = locationManager.userLocation else { return nil }
         let userLoc = CLLocation(latitude: user.latitude, longitude: user.longitude)
-        let meters = distance(from: userLoc, to: place.coordinate)
+        let meters  = userLoc.distance(from: CLLocation(latitude: place.latitude, longitude: place.longitude))
         if units == "imperial" {
             let feet = meters * 3.28084
-            if feet >= 5280 {
-                return String(format: "%.1f mi", feet / 5280)
-            }
-            return "\(Int(feet)) ft"
+            return feet >= 5280
+                ? String(format: "%.1f mi", feet / 5280)
+                : "\(Int(feet)) ft"
         }
-        if meters >= 1000 {
-            return String(format: "%.1f km", meters / 1000)
-        }
-        return "\(Int(meters)) m"
-    }
-
-    private func distance(from user: CLLocation, to destination: CLLocationCoordinate2D) -> CLLocationDistance {
-        let destinationLoc = CLLocation(latitude: destination.latitude, longitude: destination.longitude)
-        return user.distance(from: destinationLoc)
+        return meters >= 1000
+            ? String(format: "%.1f km", meters / 1000)
+            : "\(Int(meters)) m"
     }
 }
 
 struct PlacesListView: View {
-    @StateObject private var vm = PlacesListViewModel()
+    @StateObject private var vm       = PlacesListViewModel()
     @StateObject private var settings = UserSettingsStore.shared
+    @State private var showFilter     = false
 
     var body: some View {
         NavigationStack {
             VStack(spacing: 10) {
                 HStack(spacing: 10) {
                     HStack(spacing: 8) {
-                        Image(systemName: "magnifyingglass")
-                            .foregroundColor(.secondary)
+                        Image(systemName: "magnifyingglass").foregroundColor(.secondary)
                         TextField("Search places", text: $vm.searchText)
                             .textInputAutocapitalization(.never)
                             .disableAutocorrection(true)
+                        if !vm.searchText.isEmpty {
+                            Button { vm.searchText = "" } label: {
+                                Image(systemName: "xmark.circle.fill").foregroundColor(.secondary)
+                            }
+                        }
                     }
                     .padding(10)
                     .background(Color(.secondarySystemBackground))
                     .clipShape(RoundedRectangle(cornerRadius: 10))
 
-                    Menu {
-                        Button("All Categories") { vm.selectedCategory = nil }
-                        ForEach(Category.defaultCategories) { category in
-                            Button(category.name) { vm.selectedCategory = category }
+                    Button { showFilter = true } label: {
+                        ZStack(alignment: .topTrailing) {
+                            Image(systemName: "slider.horizontal.3")
+                                .font(.title3)
+                                .padding(10)
+                                .background(
+                                    vm.activeFilterCount > 0
+                                    ? Color.blue
+                                    : Color(.secondarySystemBackground)
+                                )
+                                .foregroundColor(vm.activeFilterCount > 0 ? .white : .primary)
+                                .clipShape(RoundedRectangle(cornerRadius: 10))
+
+                            if vm.activeFilterCount > 0 {
+                                Text("\(vm.activeFilterCount)")
+                                    .font(.system(size: 10, weight: .bold))
+                                    .foregroundColor(.white)
+                                    .padding(4)
+                                    .background(Color.red)
+                                    .clipShape(Circle())
+                                    .offset(x: 6, y: -6)
+                            }
                         }
-                    } label: {
-                        Image(systemName: "slider.horizontal.3")
-                            .font(.title3)
-                            .padding(10)
-                            .background(Color(.secondarySystemBackground))
-                            .clipShape(RoundedRectangle(cornerRadius: 10))
                     }
                 }
 
@@ -134,14 +169,21 @@ struct PlacesListView: View {
                 }
                 .pickerStyle(.segmented)
 
-                if let category = vm.selectedCategory {
-                    HStack {
-                        Label("Category: \(category.name)", systemImage: category.iconName ?? "line.3.horizontal.decrease.circle")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                        Spacer()
-                        Button("Clear") { vm.selectedCategory = nil }
-                            .font(.caption)
+                if vm.activeFilterCount > 0 {
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 8) {
+                            if let cat = vm.selectedCategory {
+                                activeChip(label: cat.name) { vm.selectedCategory = nil }
+                            }
+                            if let dist = vm.selectedDistance {
+                                activeChip(label: distanceLabel(dist)) { vm.selectedDistance = nil }
+                            }
+                            if vm.minimumRating > 0 {
+                                activeChip(label: "\(formatRating(vm.minimumRating))★ min") {
+                                    vm.minimumRating = 0
+                                }
+                            }
+                        }
                     }
                 }
 
@@ -153,13 +195,19 @@ struct PlacesListView: View {
                     Spacer()
                     VStack(spacing: 8) {
                         Image(systemName: "map")
-                            .font(.system(size: 36))
-                            .foregroundColor(.secondary)
-                        Text("No places found")
-                            .font(.headline)
-                        Text("Try changing your search, category, or sort options.")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
+                            .font(.system(size: 36)).foregroundColor(.secondary)
+                        Text("No places found").font(.headline)
+                        Text("Try changing your search or filters.")
+                            .font(.caption).foregroundColor(.secondary)
+                        if vm.activeFilterCount > 0 {
+                            Button("Clear Filters") {
+                                vm.selectedCategory = nil
+                                vm.selectedDistance = nil
+                                vm.minimumRating    = 0
+                            }
+                            .buttonStyle(.borderedProminent)
+                            .padding(.top, 4)
+                        }
                     }
                     Spacer()
                 } else {
@@ -179,9 +227,14 @@ struct PlacesListView: View {
             .navigationTitle("Places")
             .onAppear {
                 settings.loadForCurrentUser()
-                if vm.places.isEmpty {
-                    vm.load()
-                }
+                if vm.places.isEmpty { vm.load() }
+            }
+            .sheet(isPresented: $showFilter) {
+                FilterView(
+                    selectedCategory: $vm.selectedCategory,
+                    selectedDistance: $vm.selectedDistance,
+                    minimumRating:    $vm.minimumRating
+                )
             }
             .alert("Error", isPresented: .constant(vm.errorMessage != nil), actions: {
                 Button("OK") { vm.errorMessage = nil }
@@ -189,6 +242,30 @@ struct PlacesListView: View {
                 Text(vm.errorMessage ?? "")
             })
         }
+    }
+
+    private func activeChip(label: String, onRemove: @escaping () -> Void) -> some View {
+        HStack(spacing: 4) {
+            Text(label).font(.caption).fontWeight(.medium)
+            Button { onRemove() } label: {
+                Image(systemName: "xmark").font(.system(size: 9, weight: .bold))
+            }
+        }
+        .padding(.horizontal, 10)
+        .padding(.vertical, 6)
+        .background(Color.blue.opacity(0.12))
+        .foregroundColor(.blue)
+        .clipShape(Capsule())
+    }
+
+    private func distanceLabel(_ meters: Double) -> String {
+        meters >= 1000
+            ? String(format: "%.0f km", meters / 1000)
+            : "\(Int(meters)) m"
+    }
+
+    private func formatRating(_ rating: Double) -> String {
+        rating == Double(Int(rating)) ? "\(Int(rating))" : String(format: "%.1f", rating)
     }
 }
 
@@ -199,35 +276,26 @@ private struct PlaceListRow: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack {
-                Text(place.name)
-                    .font(.headline)
+                Text(place.name).font(.headline)
                 Spacer()
                 HStack(spacing: 4) {
-                    Image(systemName: "star.fill")
-                        .foregroundColor(.yellow)
+                    Image(systemName: "star.fill").foregroundColor(.yellow)
                     Text(String(format: "%.1f", place.rating))
-                        .font(.caption)
-                        .foregroundColor(.secondary)
+                        .font(.caption).foregroundColor(.secondary)
                 }
             }
-
             Text(place.address)
-                .font(.subheadline)
-                .foregroundColor(.secondary)
-                .lineLimit(2)
-
+                .font(.subheadline).foregroundColor(.secondary).lineLimit(2)
             HStack {
                 Text(place.category)
                     .font(.caption)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 3)
+                    .padding(.horizontal, 8).padding(.vertical, 3)
                     .background(Color.blue.opacity(0.12))
                     .clipShape(Capsule())
                 Spacer()
                 if let distanceText {
                     Label(distanceText, systemImage: "location")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
+                        .font(.caption).foregroundColor(.secondary)
                 }
             }
         }
@@ -238,4 +306,3 @@ private struct PlaceListRow: View {
 #Preview {
     PlacesListView()
 }
-

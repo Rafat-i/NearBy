@@ -32,15 +32,21 @@ struct FavouritesViews: View {
             } else {
                 List {
                     ForEach(favourites, id: \.id) { entity in
-                        NavigationLink(destination: PlaceDetailView(place: makPlace(from: entity)).onDisappear { load() }) {
-                            VStack(spacing: 4) {
-                                Text(entity.name ?? "")
-                                    .font(.subheadline).fontWeight(.semibold)
-                                Text(entity.address ?? "")
-                                    .font(.caption).foregroundColor(.secondary)
-                                HStack(spacing: 4) {
-                                    Image(systemName: "star.fill").font(.caption2).foregroundColor(.yellow)
-                                    Text(String(format: "%.1f", entity.rating)).font(.caption2).foregroundColor(.secondary)
+                        NavigationLink(destination: PlaceDetailView(place: makPlace(from: entity))
+                            .onDisappear { load() }) {
+                            HStack(spacing: 12) {
+                                Image(systemName: "mappin.circle.fill")
+                                    .foregroundColor(.blue)
+                                    .font(.system(size: 20))
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text(entity.name ?? "")
+                                        .font(.subheadline).fontWeight(.semibold)
+                                    Text(entity.address ?? "")
+                                        .font(.caption).foregroundColor(.secondary)
+                                    HStack(spacing: 4) {
+                                        Image(systemName: "star.fill").font(.caption2).foregroundColor(.yellow)
+                                        Text(String(format: "%.1f", entity.rating)).font(.caption2).foregroundColor(.secondary)
+                                    }
                                 }
                             }
                         }

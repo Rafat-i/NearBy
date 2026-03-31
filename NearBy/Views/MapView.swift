@@ -333,6 +333,7 @@ struct MapView: View {
             }
         }
         .onAppear {
+            locationManager.requestPermission()
             loadPlaces()
             settings.loadForCurrentUser()
             zoomLevel = settings.defaultRadius > 0 ? settings.defaultRadius : zoomLevel
@@ -358,6 +359,10 @@ struct MapView: View {
         .onChange(of: selectedTransport) { _, _ in
             guard destination != nil else { return }
             runSearch()
+        }
+        
+        .onChange(of: settings.defaultRadius) { _, newRadius in
+            zoomLevel = newRadius
         }
         
     }

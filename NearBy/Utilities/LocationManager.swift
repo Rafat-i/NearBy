@@ -23,7 +23,7 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
         super.init()
         manager.delegate = self
         manager.desiredAccuracy = kCLLocationAccuracyBest
-        manager.requestWhenInUseAuthorization()
+        // manager.requestWhenInUseAuthorization()
         manager.startUpdatingLocation()
         
     #if targetEnvironment(simulator)
@@ -67,7 +67,8 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
         
         switch manager.authorizationStatus {
         case .notDetermined:
-            manager.requestWhenInUseAuthorization()
+            // manager.requestWhenInUseAuthorization()
+            break
             
         case .restricted, .denied:
             DispatchQueue.main.async {
