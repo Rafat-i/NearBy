@@ -218,12 +218,14 @@ struct PlaceDetailView: View {
         }
         .sheet(isPresented: $vm.showNoteEditor) {
             NoteEditorView(noteText: $vm.noteText, onSave: { vm.saveNote() })
+                .presentationDetents([.height(400)])
         }
         
         .sheet(isPresented: $showRatingEditor) {
             RatingEditorView(myRating: $vm.userRating) {
                 vm.submitRating(vm.userRating)
             }
+            .presentationDetents([.height(180)])
         }
     }
 
