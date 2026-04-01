@@ -36,6 +36,49 @@ class FirebaseService {
         }
     }
     
+    func fetchUserRating(for placeID: String, completion: @escaping (_ average: Double, _ count: Int) -> Void) {
+        db.collection("places").document(placeID)
+            .collection("ratings")
+            .getDocuments { snapshot, error in
+                guard let docs = snapshot?.documents, error == nil else {
+                    completion(0, 0)
+                    return
+                }
+                let ratings = docs.compactMap { $0.data()["rating"] as? Double }
+                let count = ratings.count
+                let average = count >= 0 ? ratings.reduce(0, +) / Double(count) : 0
+                completion(average, count)
+            }
+    }
+    
+    func fetchUserRating(for placeID: String, userID: String, completion: @escaping ( _ rating: Double) -> Void) {
+        db.collection("places").document(placeID)
+            .collection("ratings")
+            .document(userID)
+            .getDocument { snapshot, error in
+                guard let data = snapshot?.data(), error == nil else {
+                    completion(0)
+                    return
+                }
+                completion(data["rating"] as? Double ?? 0)
+            }
+    }
+    
+    func submitRating(for placeID: String, userID: String, rating: Double, completion: @escaping (_ newAverage: Double, _ newCount: Int) -> Void) {
+        let ref = db.collection("places").document(placeID)
+            .collection("ratings").document(userID)
+        
+        ref.setData(["rating": rating, "updateAt": Timestamp()]) { [weak self] error in
+            guard error == nil else {
+                completion(0, 0)
+                return
+            }
+            self?.fetchUserRating(for: placeID) { average, count in
+            completion(average, count)
+            }
+        }
+    }
+    
 
     func addSamplePlaces() {
         let samplePlaces: [[String: Any]] = [

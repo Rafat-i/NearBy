@@ -21,6 +21,9 @@ class PlaceDetailViewModel: ObservableObject {
     @Published var favouriteSavedMessage: String?
     @Published var errorMessage: String?
     @Published var cameraPosition: MapCameraPosition = .automatic
+    @Published var userRating: Double = 0
+    @Published var displayRating: Double = 0
+    @Published var ratingCount: Int = 0
 
     let place: Place
     private let coreData = CoreDataManager.shared
@@ -28,8 +31,10 @@ class PlaceDetailViewModel: ObservableObject {
 
     init(place: Place) {
         self.place = place
+        self.displayRating = place.rating
         cameraPosition = .camera(MapCamera(centerCoordinate: place.coordinate, distance: 800))
         loadPlaceState()
+        loadRating()
     }
 
     private func loadPlaceState() {
@@ -38,6 +43,34 @@ class PlaceDetailViewModel: ObservableObject {
         noteText   = entity.userNotes ?? ""
         entity.lastViewed = Date()
         try? sync.saveAndSyncMainContext()
+    }
+    
+    func loadRating() {
+        guard let placeID = place.id else { return }
+        FirebaseService.shared.fetchUserRating(for: placeID) { avg, count in
+            self.displayRating = avg
+            self.ratingCount = count
+        }
+        guard let userID = AuthService.shared.currentUser?.id else { return }
+        FirebaseService.shared.fetchUserRating(for: placeID, userID: userID) { rating in
+            self.userRating = rating
+        }
+    }
+    
+    func submitRating(_ stars: Double) {
+        guard let placeID = place.id,
+              let userID = AuthService.shared.currentUser?.id else { return }
+        userRating = stars
+        
+        if let entity = fetchOrCreatePlaceEntity() {
+            entity.rating = stars
+            try? sync.saveAndSyncMainContext()
+        }
+        
+        FirebaseService.shared.submitRating(for: placeID, userID: userID, rating: stars) { newAvg, newCount in
+            self.displayRating = newAvg
+            self.ratingCount = newCount
+        }
     }
 
     func fetchOrCreatePlaceEntity() -> PlaceEntity? {
@@ -127,6 +160,7 @@ class PlaceDetailViewModel: ObservableObject {
 struct PlaceDetailView: View {
 
     @StateObject private var vm: PlaceDetailViewModel
+    @State private var showRatingEditor: Bool = false
 
     init(place: Place) {
         _vm = StateObject(wrappedValue: PlaceDetailViewModel(place: place))
@@ -185,6 +219,12 @@ struct PlaceDetailView: View {
         .sheet(isPresented: $vm.showNoteEditor) {
             NoteEditorView(noteText: $vm.noteText, onSave: { vm.saveNote() })
         }
+        
+        .sheet(isPresented: $showRatingEditor) {
+            RatingEditorView(myRating: $vm.userRating) {
+                vm.submitRating(vm.userRating)
+            }
+        }
     }
 
     private var mapSnapshotSection: some View {
@@ -228,7 +268,7 @@ struct PlaceDetailView: View {
                 Spacer()
                 HStack(spacing: 4) {
                     Image(systemName: "star.fill").foregroundColor(.yellow).font(.caption)
-                    Text(String(format: "%.1f", vm.place.rating))
+                    Text(String(format: "%.1f", vm.displayRating))
                         .font(.caption).fontWeight(.semibold)
                 }
                 .padding(.horizontal, 10).padding(.vertical, 5)
@@ -258,6 +298,10 @@ struct PlaceDetailView: View {
                 icon: vm.isFavorite ? "heart.fill" : "heart",
                 color: vm.isFavorite ? .red : .gray
             ) { vm.toggleFavorite() }
+            
+            actionButton(label: vm.userRating == 0 ? "Rate" : "Rated", icon: vm.userRating == 0 ? "star" : "star.fill", color: .orange) {
+                showRatingEditor = true
+            }
         }
     }
 
@@ -285,7 +329,7 @@ struct PlaceDetailView: View {
                         value: vm.place.address, color: .red, action: nil)
                 Divider().padding(.leading, 56)
                 infoRow(icon: "star.fill", label: "Rating",
-                        value: "\(String(format: "%.1f", vm.place.rating)) / 5.0",
+                        value: "\(String(format: "%.1f", vm.displayRating)) / 5.0",
                         color: .yellow, action: nil)
             }
             .background(Color(.systemBackground))
@@ -448,6 +492,53 @@ struct NoteEditorView: View {
         }
     }
 }
+
+struct RatingEditorView: View {
+    @Environment(\.dismiss) private var dismiss
+    @Binding var myRating: Double
+    
+    let onSave: () -> Void
+    
+    var body: some View{
+        NavigationStack {
+            VStack(spacing: 12) {
+                ZStack{
+                    //Background Star
+                    HStack(spacing: 5) {
+                        ForEach(1...5, id: \.self) { index in
+                            Image(systemName: "star.fill")
+                                .font(.system(size: 50))
+                                .foregroundStyle(Double(index) <= myRating ? .yellow : .gray.opacity(0.2))
+                                .onTapGesture {
+                                    withAnimation(.spring(response: 0.3, dampingFraction: 0.5)) {
+                                        myRating = Double(index)
+                                    }
+                                }
+                        }
+                    }
+                }
+            }.navigationTitle("My Rating")
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
+                    ToolbarItem(placement: .confirmationAction) {
+                        Button("Save") { onSave(); dismiss() }.fontWeight(.semibold).disabled(myRating == 0)
+                    }
+                }
+        }
+    }
+    
+    private var ratingStars: some View {
+        HStack(spacing: 5){
+            ForEach(0..<5){ index in
+                Image(systemName: "star.fill")
+                    .imageScale(.large)
+            }
+        }
+    }
+}
+
+
 
 #Preview {
     NavigationView {

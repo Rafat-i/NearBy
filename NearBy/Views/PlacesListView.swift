@@ -28,8 +28,22 @@ final class PlacesListViewModel: ObservableObject {
     @Published var selectedDistance: Double? = nil
     @Published var minimumRating: Double = 0
     @Published var sortOption: SortOption = .distance
+    @Published var displayRatings: [String: Double] = [:]
 
     private let locationManager = LocationManager()
+    
+    func loadRatings() {
+        for place in places {
+            guard let id = place.id else { continue }
+            FirebaseService.shared.fetchUserRating(for: id) { [weak self] average, _ in
+                guard let self else { return }
+                if average > 0 {
+                    self.displayRatings[id] = average
+                }
+            }
+        }
+    }
+
 
     func load() {
         isLoading = true
@@ -41,6 +55,7 @@ final class PlacesListViewModel: ObservableObject {
             switch result {
             case .success(let fetched):
                 self.places = fetched
+                self.loadRatings()
             case .failure(let error):
                 self.errorMessage = "Unable to fetch places: \(error.localizedDescription)"
             }
@@ -215,7 +230,8 @@ struct PlacesListView: View {
                         NavigationLink(destination: PlaceDetailView(place: place)) {
                             PlaceListRow(
                                 place: place,
-                                distanceText: vm.distanceText(for: place, units: settings.units)
+                                distanceText: vm.distanceText(for: place, units: settings.units),
+                                displayRating: vm.displayRatings[place.id ?? ""] ?? place.rating
                             )
                         }
                     }
@@ -272,6 +288,7 @@ struct PlacesListView: View {
 private struct PlaceListRow: View {
     let place: Place
     let distanceText: String?
+    let displayRating: Double
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
@@ -280,7 +297,7 @@ private struct PlaceListRow: View {
                 Spacer()
                 HStack(spacing: 4) {
                     Image(systemName: "star.fill").foregroundColor(.yellow)
-                    Text(String(format: "%.1f", place.rating))
+                    Text(String(format: "%.1f", displayRating))
                         .font(.caption).foregroundColor(.secondary)
                 }
             }
