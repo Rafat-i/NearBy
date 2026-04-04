@@ -315,7 +315,7 @@ struct MapView: View {
                     }
                 }
                 .padding(.horizontal)
-                .padding(.bottom, 16)
+                .padding(.bottom, 25)
             }
         }
         .navigationBarHidden(true)
