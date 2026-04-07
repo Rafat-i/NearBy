@@ -46,7 +46,7 @@ class FirebaseService {
                 }
                 let ratings = docs.compactMap { $0.data()["rating"] as? Double }
                 let count = ratings.count
-                let average = count >= 0 ? ratings.reduce(0, +) / Double(count) : 0
+                let average = count > 0 ? ratings.reduce(0, +) / Double(count) : 0
                 completion(average, count)
             }
     }
