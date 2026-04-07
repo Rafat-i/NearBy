@@ -76,6 +76,16 @@ struct ProfileView: View {
                             Text("Settings")
                         }
                     }
+                    
+                    NavigationLink {
+                        AboutView()
+                    } label: {
+                        HStack {
+                            Image(systemName: "info.circle")
+                            Text("About & Help")
+                        }
+                    }
+                    
                     NavigationLink {
                         OfflinePlacesView()
                     } label: {
