@@ -99,6 +99,11 @@ struct MapView: View {
     @State private var errorMessage: String?
 
     @State private var selectedTransport: TransportMode = .automobile
+    
+    @State private var isNavigating: Bool = false
+    @State private var currentStepIndex: Int = 0
+    @State private var steps: [MKRoute.Step] = []
+    @State private var distanceToNextStep: Double = 0
 
     @StateObject private var locationManager = LocationManager()
     @StateObject private var completerDelegate = SearchCompleterDelegate()
@@ -164,17 +169,17 @@ struct MapView: View {
                         }
                     }
                 }
-
+                
                 if let destination {
                     Marker(searchText, coordinate: destination)
                         .tint(.red)
                 }
-
+                
                 if let route {
                     MapPolyline(route.polyline)
                         .stroke(selectedTransport.color, lineWidth: 5)
                 }
-
+                
                 ForEach(places) { place in
                     Annotation(place.name, coordinate: place.coordinate) {
                         Image(systemName: categoryIcon(for: place.category))
@@ -191,8 +196,8 @@ struct MapView: View {
             .ignoresSafeArea()
             .mapStyle(
                 settings.mapStyle == "imagery" ? .imagery :
-                settings.mapStyle == "hybrid" ? .hybrid :
-                .standard
+                    settings.mapStyle == "hybrid" ? .hybrid :
+                        .standard
             )
             .onMapCameraChange { context in
                 currentCenter = context.region.center
@@ -203,37 +208,62 @@ struct MapView: View {
             .onTapGesture {
                 isSearchBarFocused = false
             }
-
+            
             VStack(spacing: 0) {
-                        
+                
+                if isNavigating, !steps.isEmpty, currentStepIndex < steps.count {
+                    NavigationBannerView(step: steps[currentStepIndex], distance: distanceToNextStep) {
+                        clearSearch()
+                    }
+                    .padding(.horizontal)
+                    .padding(.top, 60)
+                    .transition(.move(edge: .top).combined(with: .opacity))
+                } else {
+                    HStack {
+                        Spacer()
+                        NavigationLink(destination: CategoriesView(filter: MapFilter())) {
+                            Image(systemName: "slider.vertical.3")
+                                .font(.system(size: 18))
+                                .foregroundStyle(.blue)
+                                .frame(width: 50, height: 50)
+                                .background(.ultraThinMaterial)
+                                .clipShape(RoundedRectangle(cornerRadius: 10))
+                                .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 2)
+                        }
+                    }
+                    .padding(.horizontal)
+                    .padding(.top, 60)
+                }
+                
                 
                 Spacer()
                 
-                HStack {
-                    
-                    Spacer()
-                    zoomControls
-                }
-                .padding(.horizontal)
-                .padding(.bottom, 16)
                 
-                if route != nil {
-                    HStack(alignment: .bottom) {
-                        RouteInfoCard(duration: timeDuration, distance: distance, transport: selectedTransport)
+                if !isNavigating {
+                    HStack {
+                        
                         Spacer()
+                        zoomControls
                     }
                     .padding(.horizontal)
-                    .padding(.bottom, 12)
-                    .transition(.move(edge: .bottom).combined(with: .opacity))
+                    .padding(.bottom, 16)
                 }
                 
-                if route != nil || isSearching {
+                if !isNavigating, let currentRoute = route {
+                    NavigationBottomCard(route: currentRoute, transport: selectedTransport)
+                        .padding(.horizontal)
+                        .padding(.bottom, 8)
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
+                }
+                
+                if !isNavigating && (route != nil || isSearching) {
                     transportPicker
                         .padding(.horizontal)
                         .padding(.bottom, 8)
                         .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
                 
+                if !isNavigating {
                 VStack(spacing: 6) {
                     HStack(spacing: 10) {
                         HStack(spacing: 8) {
@@ -318,6 +348,8 @@ struct MapView: View {
                 .padding(.bottom, 25)
             }
         }
+    }
+        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: isNavigating)
         .navigationBarHidden(true)
         .safeAreaInset(edge: .bottom) {
             if let errorMessage {
@@ -347,6 +379,28 @@ struct MapView: View {
             guard !didAutoCenter, route == nil else { return }
             didAutoCenter = true
             cameraPosition = .camera(MapCamera(centerCoordinate: loc, distance: zoomLevel))
+            
+            guard isNavigating, !steps.isEmpty else { return }
+            let userCL = CLLocation(latitude: loc.latitude, longitude: loc.longitude)
+            
+            if currentStepIndex < steps.count {
+                let step = steps[currentStepIndex]
+                let stepLocation = CLLocation(
+                    latitude: step.polyline.coordinate.latitude,
+                    longitude: step.polyline.coordinate.longitude
+                )
+                distanceToNextStep = userCL.distance(from: stepLocation)
+                
+                if distanceToNextStep < 20 && currentStepIndex + 1 < steps.count {
+                    withAnimation { currentStepIndex += 1 }
+                }
+            }
+            
+            if isNavigating {
+                cameraPosition = .camera(MapCamera(
+                    centerCoordinate: loc, distance: 400, heading: 0, pitch: 45
+                ))
+            }
         }
         .onChange(of: selectedTransport) { _, _ in
             guard destination != nil else { return }
@@ -598,11 +652,18 @@ struct MapView: View {
         route        = newRoute
         distance     = newRoute.distance
         timeDuration = newRoute.expectedTravelTime
+        steps = newRoute.steps.filter { !$0.instructions.isEmpty }
+        currentStepIndex = 0
+        distanceToNextStep = steps.first?.distance ?? 0
 
         let rect   = newRoute.polyline.boundingMapRect
         let region = MKCoordinateRegion(rect)
         cameraPosition = .region(region)
         errorMessage = nil
+        
+        withAnimation(.spring()) {
+            isNavigating = true
+        }
     }
 
     private func clearSearch() {
@@ -613,6 +674,9 @@ struct MapView: View {
         timeDuration = 0
         errorMessage = nil
         isSearchBarFocused = false
+        isNavigating = false
+        currentStepIndex = 0
+        steps = []
         completer.queryFragment = ""
 
         if let userLocation = locationManager.userLocation {
@@ -789,6 +853,131 @@ struct RouteInfoCard: View {
                 .stroke(Color.white.opacity(0.2), lineWidth: 1)
         )
         .shadow(color: .black.opacity(0.15), radius: 6, x: 0, y: 3)
+    }
+}
+
+struct NavigationBannerView: View {
+    let step: MKRoute.Step
+    let distance: Double
+    let onEndRoute: () -> Void
+    
+    var body: some View {
+        VStack(spacing: 0) {
+            HStack(spacing: 14) {
+                //Icon direction
+                Image(systemName: directionIcon(for: step.instructions))
+                    .font(.system(size: 28, weight: .bold))
+                    .foregroundColor(.white)
+                    .frame(width: 56, height: 56)
+                    .background(Color.blue)
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(formatDistance(distance))
+                        .font(.system(size: 28, weight: .bold))
+                    Text(step.instructions)
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                        .lineLimit(2)
+                }
+                
+                Spacer()
+                
+                Button {
+                    onEndRoute()
+                } label: {
+                    Text("End")
+                        .font(.subheadline).fontWeight(.semibold)
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 8)
+                        .background(Color.red)
+                        .clipShape(Capsule())
+                }
+            }
+            .padding(16)
+            .background(.ultraThinMaterial)
+            .clipShape(RoundedRectangle(cornerRadius: 16))
+            .shadow(color: .black.opacity(0.15), radius: 12, x: 0, y: 4)
+            
+            
+            // directions preview
+            if let nextStep = nextStep {
+                HStack(spacing: 10) {
+                    Image(systemName: "arrow.turn.up.right")
+                        .font(.caption).foregroundColor(.secondary)
+                    Text("Then: \(nextStep.instructions)")
+                        .font(.caption).foregroundColor(.secondary)
+                        .lineLimit(1)
+                    Spacer()
+                }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 8)
+                .background(Color(.systemBackground).opacity(0.9))
+                .clipShape(RoundedRectangle(cornerRadius: 10))
+                .padding(.top, 4)
+            }
+        }
+    }
+    
+    var nextStep: MKRoute.Step? { nil }
+    
+    private func formatDistance(_ meters: Double) -> String {
+        if meters < 1000 {
+            return "\(Int(meters)) m"
+        } else {
+            return String(format: "%.1f", meters / 1000)
+        }
+    }
+    
+    private func directionIcon(for instruction: String) -> String {
+        let lower = instruction.lowercased()
+        if lower.contains("left") { return "arrow.turn.up.left" }
+        if lower.contains("right") { return "arrow.turn.up.right" }
+        if lower.contains("slight left") { return "arrow.up.left" }
+        if lower.contains("slight right") { return "arrow.up.right" }
+        if lower.contains("u-turn") { return "arrow.uturn.left" }
+        if lower.contains("merge") { return "arrow.merge" }
+        if lower.contains("exit") { return "arrow.up.right.circle" }
+        if lower.contains("arrive") { return "mapping.circle.fill" }
+        return "arrow.up"
+    }
+}
+
+//time and distance
+struct NavigationBottomCard: View {
+    let route: MKRoute
+    let transport: TransportMode
+    
+    var body: some View {
+        HStack(spacing: 20) {
+            VStack(spacing: 2) {
+                Text(formatTime(route.expectedTravelTime))
+                    .font(.title2).fontWeight(.bold)
+                Text("ETA").font(.caption).foregroundColor(.secondary)
+            }
+            
+            Divider().frame(height: 36)
+            
+            VStack(spacing: 2) {
+                Image(systemName: transport.icon)
+                    .font(.title2)
+                    .foregroundColor(transport.color)
+                Text(transport.rawValue).font(.caption).foregroundColor(.secondary)
+            }
+        }
+        .padding(.horizontal, 24)
+        .padding(.vertical, 14)
+        .frame(maxWidth: .infinity)
+        .background(.ultraThinMaterial)
+        .clipShape(RoundedRectangle(cornerRadius: 16))
+        .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 2)
+    }
+    
+    private func formatTime(_ seconds: Double) -> String {
+        let minutes = Int(seconds / 60)
+        if minutes < 60 { return "\(minutes) min" }
+        return "\(minutes / 60)h \(minutes % 60)m"
     }
 }
 
