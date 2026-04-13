@@ -14,6 +14,7 @@ struct ProfileView: View {
     @State private var errorText: String?
     @State private var successMessage: String?
     @State private var showEditUsername = false
+    @StateObject private var ratedPlacesVM = RatedPlacesViewModel()
 
     var body: some View {
         NavigationStack {
@@ -55,6 +56,16 @@ struct ProfileView: View {
                         Spacer()
                         Text("\(auth.currentUser?.visitedPlacesCount ?? 0)")
                             .foregroundColor(.secondary)
+                    }
+                    NavigationLink(destination: RatedPlacesList(vm: ratedPlacesVM)){
+                        HStack {
+                            Image(systemName: "star.fill")
+                                .foregroundColor(.yellow)
+                            Text("Your Rated Places")
+                            Spacer()
+                            Text(ratedPlacesVM.isLoading ? "..." : "\(ratedPlacesVM.ratedPlaces.count)")
+                                .foregroundColor(.secondary)
+                        }
                     }
                 }
                 
@@ -131,7 +142,8 @@ struct ProfileView: View {
                 )
             }
             .onAppear {
-                auth.fetchCurrentUser { _ in }
+                auth.fetchCurrentUser { _ in
+                }
             }
         }
     }

@@ -133,7 +133,7 @@ class AuthService: ObservableObject {
         }
     }
     
-    func updateUserStats(favoriteCount: Int? = nil, visitedPlacesCount: Int? = nil, completion: @escaping (Result<Void, Error>) -> Void) {
+    func updateUserStats(favoriteCount: Int? = nil, visitedPlacesCount: Int? = nil, ratedPlacesCount: Double? = nil, completion: @escaping (Result<Void, Error>) -> Void) {
         guard let uid = Auth.auth().currentUser?.uid else {
             return completion(.success(()))
         }
@@ -146,6 +146,10 @@ class AuthService: ObservableObject {
         
         if let visitedPlacesCount = visitedPlacesCount {
             updateData["visitedPlacesCount"] = visitedPlacesCount
+        }
+        
+        if let ratedPlacesCount = ratedPlacesCount {
+            updateData["ratedPlacesCount"] = ratedPlacesCount
         }
         
         db.collection("users").document(uid).updateData(updateData) { error in

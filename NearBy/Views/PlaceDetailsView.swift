@@ -60,6 +60,8 @@ class PlaceDetailViewModel: ObservableObject {
     func submitRating(_ stars: Double) {
         guard let placeID = place.id,
               let userID = AuthService.shared.currentUser?.id else { return }
+        
+        let isFirstRating = userRating == 0
         userRating = stars
         
         if let entity = fetchOrCreatePlaceEntity() {
@@ -71,6 +73,11 @@ class PlaceDetailViewModel: ObservableObject {
             self.displayRating = newAvg
             self.ratingCount = newCount
         }
+        if isFirstRating {
+            let current = AuthService.shared.currentUser?.ratedPlacesCount ?? 0.0
+            AuthService.shared.updateUserStats(ratedPlacesCount: current + 1) { _ in }
+        }
+       
     }
 
     func fetchOrCreatePlaceEntity() -> PlaceEntity? {
