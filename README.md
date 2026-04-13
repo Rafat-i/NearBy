@@ -5,7 +5,7 @@ A MapKit-based iOS application for discovering, exploring, and saving nearby pla
 ## Project Information
 
 **Course:** 420-DM6-AS — iOS App Development II
-**Team Members:** Chadi Faour · Rafat-Ahmed Islam · Melinda Tran
+**Team Members:** Chadi · Rafat · Melinda
 
 ---
 
@@ -208,4 +208,4 @@ open NearBy.xcodeproj
 
 ## Contributors
 
-**Chadi Faour** · **Rafat-Ahmed Islam** · **Melinda Tran**
+**Chadi** · **Rafat** · **Melinda**
