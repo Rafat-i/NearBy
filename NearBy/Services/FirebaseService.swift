@@ -65,16 +65,24 @@ class FirebaseService {
     }
     
     func submitRating(for placeID: String, userID: String, rating: Double, completion: @escaping (_ newAverage: Double, _ newCount: Int) -> Void) {
-        let ref = db.collection("places").document(placeID)
+
+        let ratingRef = db.collection("places").document(placeID)
             .collection("ratings").document(userID)
-        
-        ref.setData(["rating": rating, "updateAt": Timestamp()]) { [weak self] error in
+
+        ratingRef.setData(["rating": rating, "updatedAt": Timestamp()]) { [weak self] error in
             guard error == nil else {
                 completion(0, 0)
                 return
             }
+
+            
+            let userRef = self?.db.collection("users").document(userID)
+            userRef?.updateData([
+                "ratedPlacesCount": FieldValue.increment(Int64(1))
+            ])
+
             self?.fetchUserRating(for: placeID) { average, count in
-            completion(average, count)
+                completion(average, count)
             }
         }
     }

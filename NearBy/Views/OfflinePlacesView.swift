@@ -108,7 +108,7 @@ struct OfflinePlacesView: View {
                                 .foregroundColor(.secondary.opacity(0.4))
                             Text("No cached places yet")
                                 .font(.headline)
-                            Text("Places you view or save as favorites will appear here when you're offline.")
+                            Text("Places you save as favorites will appear here when you're offline.")
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                                 .multilineTextAlignment(.center)
@@ -155,7 +155,7 @@ struct OfflinePlacesView: View {
             cachedPlaces = []
             return
         }
-        let predicate = NSPredicate(format: "userId == %@", userId)
+        let predicate = NSPredicate(format: "userId == %@ AND isFavorite == true", userId)
         let sort = NSSortDescriptor(key: "name", ascending: true)
         cachedPlaces = (try? coreData.fetch(
             PlaceEntity.self,

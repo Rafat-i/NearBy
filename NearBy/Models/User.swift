@@ -15,9 +15,9 @@ struct User: Identifiable, Codable {
     var username: String
     var favoriteCount: Int
     var visitedPlacesCount: Int
-    var ratedPlacesCount: Double
+    var ratedPlacesCount: Double? = 0.0
     
-    init(id: String? = nil, email: String, username: String, favoriteCount: Int = 0, visitedPlacesCount: Int = 0, ratedPlacesCount: Double = 0.0) {
+    init(id: String? = nil, email: String, username: String, favoriteCount: Int = 0, visitedPlacesCount: Int = 0, ratedPlacesCount: Double? = 0.0) {
         self.id = id
         self.email = email
         self.username = username

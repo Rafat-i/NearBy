@@ -72,6 +72,8 @@ NearBy/
 │   ├── Category.swift                  # Category model
 │   └── MapFilter.swift                 # Filter state model
 │
+├── ViewModels/
+│   └── MapViewModel.swift              # Map search, routing, place loading
 │
 ├── Services/
 │   ├── AuthService.swift               # Firebase Authentication

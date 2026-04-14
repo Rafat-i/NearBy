@@ -60,7 +60,7 @@ struct FavouritesViews: View {
                 .listStyle(.insetGrouped)
             }
         }
-        .navigationTitle("Favourites")
+        .navigationTitle("Favorites")
         .onAppear { load() }
     }
     
